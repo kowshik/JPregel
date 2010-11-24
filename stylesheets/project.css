@@ -7,7 +7,7 @@ For more information, see http://andreasviklund.com/templates/andreas07/
 body {margin:0; padding:0; color:#404040; background:#fafafa url(../img/bodybg.gif) top left repeat-y ; font:76% Verdana,Tahoma,sans-serif;}
 ul {margin:5px 0 16px 5px; padding:0;}
 li {margin:0 0 8px 15px; padding:0; }
-a {color:#6494ED; font-weight:400; text-decoration:none;}
+a {color:#6495ED; font-weight:400; text-decoration:none;}
 a:hover {color:#6495ED; text-decoration:underline;}
 a img {border-color:#fafafa;}
 
@@ -52,7 +52,7 @@ pre code {
 #leftside a {color:#808080}
 
 /* Navigation menu */
-#menu a {display:block; width:202px; padding:5px 18px 5px 0; color:#000000; background:#e0e0e0 url(../img/sidebarbg.gif) top right repeat-y; font-size:1.6em; font-weight:normal; text-decoration:none; letter-spacing:-1px;}
+#menu a {display:block; width:202px; padding:5px 50px 5px 0; color:#000000; background:#e0e0e0 url(../img/sidebarbg.gif) top right repeat-y; font-size:1.6em; font-weight:normal; text-decoration:none; letter-spacing:-1px;}
 #menu a:hover {color:#303030; background:#f0f0f0 url(../img/sidebarbg.gif) top right repeat-y;}
 #menu a.active {padding:5px 18px 5px 0; background:#fafafa; border-top:2px solid #c0c0c0; border-bottom:2px solid #c0c0c0;}
 #menu a.active:hover {color:#505050; background:#fafafa;}
