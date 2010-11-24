@@ -44,7 +44,7 @@ pre code {
 #wrap {width: 1090px;}
 
 /* Left sidebar */
-#leftside {padding:200px 0;width:220px; background:#e0e0e0 url(../img/sidebarbg.gif) top right repeat-y; text-align:right; float:left;}
+#leftside {padding:150px 0;width:220px; background:#e0e0e0 url(../img/sidebarbg.gif) top right repeat-y; text-align:right; float:left;}
 #leftside h1 {margin:20px 18px 0 5px; color:#6495ED; font-size:2.6em; letter-spacing:-2px; text-align:right;}
 #leftside h2, #leftside h3 {margin:0 20px 18px 5px; color:#808080; font-size:1.1em; font-weight:bold; letter-spacing:-1px; text-align:right;}
 #leftside h3 {margin:20px 18px 4px 5px; color:#606060;}
