@@ -1,0 +1,78 @@
+/*
+Original design: andreas07 (v2.0 - Jul 07, 2008) - A free xhtml/css website template by Andreas Viklund and stylishtemplate.com.
+For more information, see http://andreasviklund.com/templates/andreas07/
+*/
+
+/* Main tags */
+body {margin:0; padding:0; color:#404040; background:#fafafa url(../img/bodybg.gif) top left repeat-y ; font:76% Verdana,Tahoma,sans-serif;}
+ul {margin:5px 0 16px 5px; padding:0;}
+li {margin:0 0 8px 15px; padding:0; }
+a {color:#6495ED; font-weight:400; text-decoration:none;}
+a:hover {color:#6495ED; text-decoration:underline;}
+a img {border-color:#fafafa;}
+
+pre {
+  background: #000;
+  font-family: Monaco, Consolas, "Courier New", monospace;
+  padding: 1em;
+  font-size: 1.4em;
+  overflow: auto;
+  margin: 1.5em 36px;
+  color: #fff;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  line-height: 1.4em;
+  width:500px;
+}
+
+code {
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  background: #000;
+  font-family: Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.7em;
+  color: #fff;
+  padding: 3px;
+}
+
+pre code {
+  padding: 0;
+}
+
+
+/* Wrap */
+#wrap {width: 1090px;}
+
+/* Left sidebar */
+#leftside {padding:170px 0;width:220px; background:#e0e0e0 url(../img/sidebarbg.gif) top right repeat-y; text-align:right; float:left;}
+#leftside h1 {margin:20px 18px 0 5px; color:#6495ED; font-size:2.6em; letter-spacing:-2px; text-align:right;}
+#leftside h2, #leftside h3 {margin:0 20px 18px 5px; color:#808080; font-size:1.1em; font-weight:bold; letter-spacing:-1px; text-align:right;}
+#leftside h3 {margin:20px 18px 4px 5px; color:#606060;}
+#leftside p {margin:0 20px 18px 5px; color:#606060; font-size:0.8em;}
+#leftside a {color:#808080}
+
+/* Navigation menu */
+#menu a {display:block; width:202px; padding:5px 18px 5px 0; color:#000000; background:#e0e0e0 url(../img/sidebarbg.gif) top right repeat-y; font-size:1.6em; font-weight:normal; text-decoration:none; letter-spacing:-1px;}
+#menu a:hover {color:#303030; background:#f0f0f0 url(../img/sidebarbg.gif) top right repeat-y;}
+#menu a.active {padding:5px 18px 5px 0; background:#fafafa; border-top:2px solid #c0c0c0; border-bottom:2px solid #c0c0c0;}
+#menu a.active:hover {color:#505050; background:#fafafa;}
+
+/* Right sidebar */
+#extras {width:200px;position:absolute; left:1040px; top:170px;color:#666;}
+#extras h2.title {margin:10px 0 2px 0; color:#606060; font-size:2.6em; font-weight:400; letter-spacing:-1px; text-align:left; border-bottom:2px solid #b0b0b0;}
+#extras h2.version_text {margin:10px 0 2px 0; color:#000000; font-size:1.6em; font-weight:400; letter-spacing:-1px; text-align:left;}
+#extras p {line-height:1.4em; margin: 0 0 15px 0;}
+#extras a:hover {color:#6495ED;}
+#extras a img{border-color:#e0e0e0;}
+
+/* Content area */
+#content {width:750px; height: 3200px; margin:0 0 0 240px; padding:10px 0; background:#fafafa;}
+#content p {margin:30px 0 0px 30px; line-height:1.5em;font-size:1.2em;}
+#content ul {margin:0 20px 16px 75px; line-height:1.5em;font-size:1.2em;}
+#content ol {margin:0 20px 16px 40px; line-height:1.5em;font-size:1.2em;}
+#content h1 {margin:0; color:#d85d5d; font-size:3.6em; letter-spacing:-4px; text-align:center;}
+#content h2 {margin:0; color:#808080; font-weight:normal; font-size:2em; letter-spacing:-2px; text-align:center;}
+#content h2.version_num {margin:30px 0 0px 30px; color:#F08080; font-weight:normal; font-size:2em; letter-spacing:-2px; text-align:left;}
+#content h2.inst_heading {margin:30px 0 0px 30px; color:#F08080; font-weight:normal; font-size:1.7em; letter-spacing:-2px; text-align:left;}
+#content h2.inst_subheading {margin:30px 0 20px 50px; color:#DB7093; font-weight:normal; font-size:1.5em; letter-spacing:-1px; text-align:left;}
+#content h3 {margin:20px 0 10px 0; color:#d85d5d; font-weight:normal; font-size: 2em; letter-spacing:-2px;}

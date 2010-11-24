@@ -1,80 +1,50 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-
-	<title>kowshik/JPregel @ GitHub</title>
-	
-	<style type="text/css">
-		body {
-  		margin-top: 1.0em;
-  		background-color: #1d8219;
-		  font-family: "Helvetica,Arial,FreeSans";
-  		color: #ffffff;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
-		h1 { font-size: 3.8em; color: #e27de6; margin-bottom: 3px; }
-		h1 .small { font-size: 0.4em; }
-		h1 a { text-decoration: none }
-		h2 { font-size: 1.5em; color: #e27de6; }
-    h3 { text-align: center; color: #e27de6; }
-    a { color: #e27de6; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-		pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-	</style>
-	
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="Your description goes here" />
+	<meta name="keywords" content="your,keywords,goes,here" />
+	<meta name="author" content="Your Name" />
+	<link rel="stylesheet" type="text/css" href="stylesheets/project.css" title="andreas07" media="screen,projection" />
+	<title>JPregel</title>
 </head>
-
-<body>
-  <a href="http://github.com/kowshik/JPregel"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
-
-  <div id="container">
-
-    <div class="download">
-      <a href="http://github.com/kowshik/JPregel/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/kowshik/JPregel/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-    </div>
-
-    <h1><a href="http://github.com/kowshik/JPregel">JPregel</a>
-      <span class="small">by <a href="http://github.com/kowshik">kowshik</a></span></h1>
-
-    <div class="description">
-      A system and a Java API for large-scale graph processing based on Google's Pregel
-    </div>
-
-    <h2>Authors</h2>
-<p>Kowshik Prakasam (kowshik@gmail.com)<br/><br/>      </p>
-<h2>Contact</h2>
-<p>Kowshik Prakasam (kowshik@gmail.com)<br/>      </p>
+<script type="text/javascript" src="src/wordzap.js">
+</script>
+<body onLoad="javascript:setHeight('home')">
+ 
+<div id="wrap">
 
 
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/kowshik/JPregel/zipball/master">zip</a> or
-      <a href="http://github.com/kowshik/JPregel/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/kowshik/JPregel</pre>
-    </p>
+<div id="leftside">
+	
+	<div id="menu">
+		<a class="active" href="#">Home</a>
+		<a href="developers.html">Developers</a>
+		<a href="team.html">Team</a> 
+	</div>
+</div>
 
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/kowshik/JPregel">kowshik/JPregel</a>
-    </div>
+<a href="http://github.com/kowshik/JPregel"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" /></a>
 
-  </div>
 
-  
+<div id="content">
+	
+	<h1>JPregel</h1>
+	<br>
+	<br>
+	<br>
+	<br>
+	<h3>Goal</h3>
+	<p>Development of a system and a Java API for large-scale graph processing based on Google's Pregel
+	<br>
+	<br>
+	<br>
+	<h3>Description</h3>
+	<p>The system aids distributed processing of large graphs. It also provides a Java API for developing distributed computing solutions to graph problems. The API abstracts a distributed computational model for graphs proposed in Google's research paper : <a href="pregel_paper.pdf">Pregel: A System for Large-Scale Graph Processing</a>.
+<br><br>Programs that use our API are expressed as a sequence of iterations. Each iteration follows a vertex-centric approach that involves asynchronous computations running locally and independently on every vertex of the graph. At runtime the system composes the output of each computation to scale to huge graphs.<br><br>
+Our initial dev releases will offer API support for implementing solutions to some classical graph problems like <a href="http://en.wikipedia.org/wiki/PageRank">PageRank</a>, <a href="http://en.wikipedia.org/wiki/Dijkstra's_algorithm">Djikstra's Shortest Path</a> whose execution times grow with large input graphs. The system can be deployed on a cluster of machines that communicate through <a href="http://en.wikipedia.org/wiki/Java_remote_method_invocation">Java RMI</a>.</p>
+</div>
+
+</div>
 </body>
 </html>
