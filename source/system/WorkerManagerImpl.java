@@ -3,6 +3,7 @@
  */
 package system;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -27,17 +28,24 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 
 	private String id;
 	private Logger logger;
-	private static final String LOG_FILE_PREFIX = "/cs/student/kowshik/jpregel_logs/worker_";
+	private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR+"worker_";
 	private static final String LOG_FILE_SUFFIX = ".log";
 	private ManagerToMaster master;
 
-	private void initLogger() {
+	private void initLogger() throws IOException {
+		File logDir = new File(JPregelConstants.LOG_DIR);
+
+		if (!logDir.exists() && !logDir.mkdirs()) {
+			throw new IOException("Can't create root log dir : "
+					+ JPregelConstants.LOG_DIR);
+		}
 		logger = Logger.getLogger(id);
-		//logger.setUseParentHandlers(false);
+		// logger.setUseParentHandlers(false);
 		Handler logHandle = null;
 		try {
-			logHandle = new FileHandler(LOG_FILE_PREFIX+this.getId()+LOG_FILE_SUFFIX);
-			
+			logHandle = new FileHandler(LOG_FILE_PREFIX + this.getId()
+					+ LOG_FILE_SUFFIX);
+
 		} catch (SecurityException e) {
 			System.err.println("Can't init logger in " + this.getId());
 			e.printStackTrace();
@@ -50,9 +58,9 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		logger.info("init " + this.getId() + " Logger successful");
 	}
 
-	public WorkerManagerImpl(ManagerToMaster master) throws RemoteException {
-		
-		this.master=master;
+	public WorkerManagerImpl(ManagerToMaster master) throws IOException {
+
+		this.master = master;
 		try {
 			this.setId(InetAddress.getLocalHost().getHostName() + "_"
 					+ WorkerManagerImpl.getRandomChars());
@@ -60,7 +68,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 			System.err.println("Can't set id in worker " + this.getId());
 			e.printStackTrace();
 		}
-		
+
 		this.initLogger();
 	}
 
@@ -68,8 +76,8 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	 * @param string
 	 */
 	private void setId(String id) {
-		this.id=id;
-		
+		this.id = id;
+
 	}
 
 	/*
@@ -89,12 +97,12 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	 * @see system.WorkerManager#getId()
 	 */
 	@Override
-	public String getId(){
+	public String getId() {
 		// TODO Auto-generated method stub
 		return id;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String masterServer = args[0];
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
