@@ -13,6 +13,10 @@ import java.rmi.RemoteException;
 public interface ManagerToMaster  extends java.rmi.Remote{
 	String SERVICE_NAME = "master";
 
+	enum WORKER_MANAGER_STATE {
+		ACTIVE, INACTIVE
+	};
+	
 	void register(WorkerManager aWorkerManager, String id)
 			throws RemoteException;
 }
