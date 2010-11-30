@@ -52,6 +52,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		this.setId("Master");
 		initLogger();
 		this.idManagerMap = new HashMap<String, WorkerManager>();
+		this.activeWorkerMgrs = new HashMap<WorkerManager, WORKER_MANAGER_STATE>();
 	}
 
 	
@@ -93,8 +94,9 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 	public synchronized void register(WorkerManager aWorkerManager, String id)
 			throws RemoteException {
 		this.idManagerMap.put(id, aWorkerManager);
-		this.activeWorkerMgrs.put(aWorkerManager, WORKER_MANAGER_STATE.ACTIVE);
 		logger.info("registered worker : " + id);
+		this.activeWorkerMgrs.put(aWorkerManager, WORKER_MANAGER_STATE.ACTIVE);
+		logger.info("registered state of worker : " + id+" to "+ WORKER_MANAGER_STATE.ACTIVE);
 	}
 
 	public static void main(String args[]) {

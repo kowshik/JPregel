@@ -167,7 +167,7 @@
     </target>
     
     
-    <target name="runLocalJPregel" depends="build_jpregel" description="starts jpregel locally">
+    <target name="runLocalMaster" depends="build_jpregel" description="starts master locally">
         
         <!-- run space -->
         <java classname="system.MasterImpl" fork="true">
@@ -180,7 +180,7 @@
     
     
     
-    <target name="runRemoteJPregel" depends="build_jpregel" description="starts jpregel remotely  through ssh">
+    <target name="runRemoteMaster" depends="build_jpregel" description="starts master remotely  through ssh">
         
         <!-- run compute space in remote hosts -->
         <sshexec host="${master}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runJPregel -Dusername=${username}" passphrase=""/>
@@ -188,7 +188,7 @@
         
     </target>
     
-    <target name="runJPregel" description="runs jpregel on the remote host">
+    <target name="runMaster" description="runs master on the remote host">
         
         <!-- run remote space -->
         <java classname="system.MasterImpl" fork="true">
