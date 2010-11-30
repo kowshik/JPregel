@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<project name="CS290B-${hw_folder}" basedir=".">
+    <description>
+        Builds, tests, and runs the project CS-290B-HW5.
+    </description>
+    
+    <property name="src" location="source"/>
+    <property name="build" location="build/classes"/>
+    <property name="dist" location="dist"/>
+    <property name="port" value="3672"/>
+    
+    <!-- codebase properties -->
+    
+    <property name="hw_folder" value="hw5"/>
+    <property name="client_file_codebase" location="/cs/student/${username}/public_html/CS290B/${hw_folder}/"/>
+    <property name="client_web_codebase" value="http://www.cs.ucsb.edu/~${username}/CS290B/${hw_folder}/"/>
+    <property name="client_codebase_server" value="csil.cs.ucsb.edu"/>
+    
+    <!-- host names -->
+    <property name="host1" value="dudley.cs.ucsb.edu"/>
+    <property name="host2" value="scooby.cs.ucsb.edu"/>
+    <property name="host3" value="megatron.cs.ucsb.edu"/>
+    <property name="host4" value="butthead.cs.ucsb.edu"/>
+    <property name="host5" value="lisa.cs.ucsb.edu"/>
+    <property name="host6" value="yogi.cs.ucsb.edu"/>
+    <property name="host7" value="taz.cs.ucsb.edu"/>
+    <property name="host8" value="speed.cs.ucsb.edu"/>
+    <property name="host9" value="cartman.cs.ucsb.edu"/>
+    <property name="host10" value="kyle.cs.ucsb.edu"/>
+    <property name="host11" value="nat.cs.ucsb.edu"/>
+    <property name="host12" value="lupin.cs.ucsb.edu"/>
+    <property name="host13" value="beavis.cs.ucsb.edu"/>
+    <property name="host14" value="brain.cs.ucsb.edu"/>
+    <property name="host15" value="bugs.cs.ucsb.edu"/>
+    <property name="host16" value="satchmo.cs.ucsb.edu"/>
+    <property name="host_computespace" value="snoopy.cs.ucsb.edu"/>
+    
+    <target name="clean" description="clean up">
+        <!-- Delete the ${build} and ${dist} directory trees -->
+        <delete dir="${build}"/>
+        <delete dir="${dist}"/>
+    </target>
+    
+    
+    <target name="compile" description="compiles the source">
+        <!-- Create the build directory structure used by compile -->
+        <mkdir dir="${build}"/>
+        
+        <!-- Compile the java code from ${src} into ${build} -->
+        <javac srcdir="${src}" destdir="${build}"/>
+    </target>
+    
+    <target name="javadoc" description="create javadocs" depends="compile">
+        <javadoc packagenames="tasks.*,api.*,client.*,system.*" sourcepath="${src}" destdir="documents/javadoc"/>
+    </target>
+    
+    
+    <target name="build_client" description="builds client" depends="compile">
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}"/>
+        
+        <!-- Make client.jar file -->
+        <jar jarfile="${dist}/client.jar" basedir="${build}" includes="api/** client/** tasks/**  system/**"/>
+        
+    </target>
+    
+    
+    <target name="build_computer" description="builds computer" depends="compile">
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}"/>
+        
+        <!-- Make computer.jar file -->
+        <jar jarfile="${dist}/computer.jar" basedir="${build}" includes="api/** system/** client/** tasks/**"/>
+        
+        
+    </target>
+    
+    
+    <target name="build_space" depends="compile" description="build space">
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}"/>
+        
+        <!-- Make space.jar file -->
+        <jar jarfile="${dist}/space.jar" basedir="${build}" includes="api/** system/** tasks/**"/>
+        
+    </target>
+    
+    
+    
+    <target name="runLocalComputer" depends="build_computer" description="run a computer locally">
+        
+        <!-- run computer -->
+        <java classname="system.ComputerImpl" fork="true">
+            <jvmarg value="-Djava.security.policy=policy/policy"/>
+            <arg value="localhost:${port}"/>
+            <classpath>
+                <pathelement location="${dist}/computer.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+    <target name="runComputer" description="runs computer on the remote host">
+        
+        <!-- run remote computer -->
+        <java classname="system.ComputerImpl" fork="true">
+            <jvmarg value="-Djava.security.policy=policy/policy"/>
+            <arg value="snoopy.cs.ucsb.edu:${port}"/>
+            <classpath>
+                <pathelement location="${dist}/computer.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+    
+    
+    <target name="run1RemoteComputers" depends="build_computer" description="starts 1 remote computer through ssh">
+        
+        <!-- run computer in remote hosts -->
+        <parallel>
+            <sshexec host="${host1}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+        </parallel>
+    </target>
+    
+    <target name="run4RemoteComputers" depends="build_computer" description="starts 4 remote computers through ssh">
+        
+        <!-- run computer in remote hosts -->
+        <parallel>
+            <sshexec host="${host1}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host2}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host3}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host4}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+        </parallel>
+    </target>
+    
+    <target name="run16RemoteComputers" depends="build_computer" description="starts 16 remote computers through ssh">
+        
+        <!-- run computer in remote hosts -->
+        <parallel>
+            <sshexec host="${host1}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host2}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host3}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host4}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host5}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host6}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host7}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host8}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host9}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host10}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host11}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host12}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host13}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host14}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host15}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            <sshexec host="${host16}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runComputer" passphrase=""/>
+            
+            
+            
+        </parallel>
+    </target>
+    
+    
+    
+    <target name="kill" description="kills java processes in all remote machines started through ssh">
+        <!-- run computer in remote hosts -->
+        <parallel>
+            <sshexec host="${host1}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host2}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host3}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host4}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host5}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host6}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host7}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host8}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host9}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host10}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host11}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host12}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host13}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host14}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host15}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host16}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            <sshexec host="${host_computespace}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="killall java" passphrase=""/>
+            
+        </parallel>
+    </target>
+    
+    
+    <target name="runLocalSpace" depends="build_space" description="run compute space locally">
+        
+        <!-- run space -->
+        <java classname="system.SpaceImpl" fork="true">
+            <jvmarg value="-Djava.security.policy=policy/policy"/>
+            <arg value="${latency}"/>
+            <arg value="${mcore}"/>
+            <classpath>
+                <pathelement location="${dist}/space.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+    
+    
+    <target name="runRemoteSpace" depends="build_space" description="starts a remote compute space through ssh">
+        
+        <!-- run compute space in remote hosts -->
+        <sshexec host="${host_computespace}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${hw_folder}/; ant runSpace -Dusername=${username} -Dlatency=${latency} -Dmcore=${mcore}" passphrase=""/>
+        
+        
+    </target>
+    
+    <target name="runSpace" description="runs space on the remote host">
+        
+        <!-- run remote space -->
+        <java classname="system.SpaceImpl" fork="true">
+            <jvmarg value="-Djava.security.policy=policy/policy"/>
+            <arg value="${latency}"/>
+            <arg value="${mcore}"/>
+            <classpath>
+                <pathelement location="${dist}/space.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+    <target name="runTspClient" description="run travelling salesman problem client" depends="build_client">
+        <!-- run client -->
+        <java classname="client.TspClient" fork="true">
+            <jvmarg value="-Djava.rmi.server.codebase=${client_web_codebase}"/>
+            <jvmarg value="-Djava.security.policy=policy/policy"/>
+            <arg value="snoopy.cs.ucsb.edu:${port}"/>
+            <classpath>
+                <pathelement location="${dist}/client.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+    <target name="runLocalTspClient" description="run travelling salesman problem client locally" depends="build_client">
+        <!-- run client -->
+        <java classname="client.TspClient" fork="true">
+            <jvmarg value="-Djava.rmi.server.codebase=${client_web_codebase}"/>
+            <jvmarg value="-Djava.security.policy=policy/policy"/>
+            <arg value="localhost:${port}"/>
+            <classpath>
+                <pathelement location="${dist}/client.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+    <target name="runFibClient" description="run fibonacci series client" depends="build_client">
+        <!-- run client -->
+        <java classname="client.FibonacciClient" fork="true">
+            <jvmarg value="-Djava.rmi.server.codebase=${client_web_codebase}"/>
+            <jvmarg value="-Djava.security.policy=policy/policy"/>
+            <arg value="snoopy.cs.ucsb.edu:${port}"/>
+            <classpath>
+                <pathelement location="${dist}/client.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+    <target name="runLocalFibClient" description="run fibonacci series client locally" depends="build_client">
+        <!-- run client -->
+        <java classname="client.FibonacciClient" fork="true">
+            <jvmarg value="-Djava.rmi.server.codebase=${client_web_codebase}"/>
+            <jvmarg value="-Djava.security.policy=policy/policy"/>
+            <arg value="localhost:${port}"/>
+            <classpath>
+                <pathelement location="${dist}/client.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+	<target name="runMdbClient" description="run Mandelbrot set client" depends="build_client">
+        <!-- run client -->
+        <java classname="client.MandelbrotSetClient" fork="true">
+            <jvmarg value="-Djava.rmi.server.codebase=${client_web_codebase}"/>
+            <jvmarg value="-Djava.security.policy=policy/policy"/>
+            <arg value="snoopy.cs.ucsb.edu:${port}"/>
+            <classpath>
+                <pathelement location="${dist}/client.jar"/>
+            </classpath>
+        </java>
+    </target>
+	
+    <target name="runLocalMdbClient" description="run Mandelbrot set client locally" depends="build_client">
+        <!-- run client -->
+        <java classname="client.MandelbrotSetClient" fork="true">
+            <jvmarg value="-Djava.rmi.server.codebase=${client_web_codebase}"/>
+            <jvmarg value="-Djava.security.policy=policy/policy"/>
+            <arg value="localhost:${port}"/>
+            <classpath>
+                <pathelement location="${dist}/client.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+    
+</project>
