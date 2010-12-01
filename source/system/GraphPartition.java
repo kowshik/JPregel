@@ -22,6 +22,7 @@ public class GraphPartition {
 	public GraphPartition(String outputFile, List<Vertex> listOfVertices) {
 		this.listOfVertices = listOfVertices;
 		this.outputFile = outputFile;
+		this.isFileWritten= false;
 	}
 
 	public void overWriteFile() throws IOException{
