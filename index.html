@@ -51,32 +51,6 @@
 	<p>The system aids distributed processing of large graphs. It also provides a Java API for developing distributed computing solutions to graph problems. The API abstracts a distributed computational model for graphs proposed in Google's research paper : <a href="pregel_paper.pdf">Pregel: A System for Large-Scale Graph Processing</a>.
 <br><br>Programs that use our API are expressed as a sequence of iterations. Each iteration follows a vertex-centric approach that involves asynchronous computations running locally and independently on every vertex of the graph. At runtime the system composes the output of each computation to scale to huge graphs.<br><br>
 Our initial dev releases will offer API support for implementing solutions to some classical graph problems like <a href="http://en.wikipedia.org/wiki/PageRank">PageRank</a>, <a href="http://en.wikipedia.org/wiki/Dijkstra's_algorithm">Djikstra's Shortest Path</a> whose execution times grow with large input graphs. The system can be deployed on a cluster of machines that communicate through <a href="http://en.wikipedia.org/wiki/Java_remote_method_invocation">Java RMI</a>.</p>
-
-
-<?php
-include('geshi.php');
-
-$source = '$foo = 45;
-for ( $i = 1; $i < $foo; $i++ )
-{
-  echo "$foo\n";
-  --$foo;
-}';
-$language = 'php';
- 
-//
-// Create a GeSHi object
-//
- 
-$geshi = new GeSHi($source, $language);
- 
-//
-// And echo the result!
-//
-echo $geshi->parse_code();
-?>
-
-
 <br><br><br>
 <br><br><br>
 <br><br><br>
