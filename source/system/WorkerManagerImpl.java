@@ -12,7 +12,10 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
+import java.util.Vector;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
@@ -28,48 +31,29 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 
 	private String id;
 	private Logger logger;
-	private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR+"worker_";
+	private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR
+			+ "workermanager_";
 	private static final String LOG_FILE_SUFFIX = ".log";
 	private ManagerToMaster master;
 
+	private List<Worker> workers;
+
 	private void initLogger() throws IOException {
-		File logDir = new File(JPregelConstants.LOG_DIR);
+		this.logger = JPregelLogger.getLogger(this.getId(), LOG_FILE_PREFIX
+				+ this.getId() + LOG_FILE_SUFFIX);
+	}
 
-		if (!logDir.exists() && !logDir.mkdirs()) {
-			throw new IOException("Can't create root log dir : "
-					+ JPregelConstants.LOG_DIR);
-		}
-		logger = Logger.getLogger(id);
-		// logger.setUseParentHandlers(false);
-		Handler logHandle = null;
-		try {
-			logHandle = new FileHandler(LOG_FILE_PREFIX + this.getId()
-					+ LOG_FILE_SUFFIX);
-
-		} catch (SecurityException e) {
-			System.err.println("Can't init logger in " + this.getId());
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.err.println("Can't init logger in " + this.getId());
-			e.printStackTrace();
-		}
-		logHandle.setFormatter(new SimpleFormatter());
-		logger.addHandler(logHandle);
-		logger.info("init " + this.getId() + " Logger successful");
+	private WorkerManagerImpl() throws IOException {
+		this.workers = new Vector<Worker>();
+		this.setId(InetAddress.getLocalHost().getHostName() + "_"
+				+ WorkerManagerImpl.getRandomChars());
+		this.initLogger();
 	}
 
 	public WorkerManagerImpl(ManagerToMaster master) throws IOException {
-
+		this();
 		this.master = master;
-		try {
-			this.setId(InetAddress.getLocalHost().getHostName() + "_"
-					+ WorkerManagerImpl.getRandomChars());
-		} catch (UnknownHostException e) {
-			System.err.println("Can't set id in worker " + this.getId());
-			e.printStackTrace();
-		}
 
-		this.initLogger();
 	}
 
 	/**
@@ -136,6 +120,63 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		char second = (char) ((new Random().nextInt(26)) + 65);
 		char third = (char) ((new Random().nextInt(26)) + 65);
 		return "" + first + second + third;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see system.WorkerManager#initialize(java.util.List)
+	 */
+	@Override
+	public void initialize(List<Integer> partitionNumbers, int numWorkers)
+			throws RemoteException {
+		logger.info("Received partitionNumbers : " + partitionNumbers);
+		Iterator<Integer> it = partitionNumbers.iterator();
+		List<Integer> threadPartitions = new Vector<Integer>();
+		
+		int workerIndex = 0;
+		int wkrPartitionCount = partitionNumbers.size() / numWorkers;
+		if(wkrPartitionCount == 0 && numWorkers!=0){
+			wkrPartitionCount=partitionNumbers.size();
+		}
+		while (it.hasNext() && (workers.size() != numWorkers)) {
+			int thisWkrPartitionCount = 0;
+			threadPartitions.clear();
+			while (thisWkrPartitionCount < wkrPartitionCount && it.hasNext()) {
+				threadPartitions.add(it.next());
+				thisWkrPartitionCount++;
+			}
+			if (thisWkrPartitionCount > 0) {
+				try {
+					if (it.hasNext() && this.workers.size() + 1 == numWorkers) {
+						while (it.hasNext()) {
+							threadPartitions.add(it.next());
+						}
+					}
+					Worker aWkr = new Worker(new Vector<Integer>(
+							threadPartitions), this);
+					this.workers.add(aWkr);
+					logger.info("Added new worker : " + aWkr);
+				} catch (DataNotFoundException e) {
+					logger.severe("Unable to read partitions in worker manager : "
+							+ this.getId());
+					e.printStackTrace();
+				} catch (IOException e) {
+					logger.severe("Unable to read partitions in worker manager : "
+							+ this.getId());
+					e.printStackTrace();
+				} catch (IllegalInputException e) {
+					logger.severe("Unable to read partitions in worker manager : "
+							+ this.getId());
+					e.printStackTrace();
+				}
+			}
+
+		}
+
+		logger.info("Initialized worker manager : " + this.getId()
+				+ "\n\n Workers are : " + workers);
+
 	}
 
 }
