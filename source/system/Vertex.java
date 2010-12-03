@@ -1,16 +1,17 @@
 package system;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 public class Vertex {
 
 	private String vertexID;
 	public static final String vertexToEdgesSep = "->";
-	public static final String vertexToVertexSep = ",";
-	public static final String vertexToCostSep = ":";
+	public static final String edgesSep = ",";
+	
 	
 	public String getVertexID() {
 		return vertexID;
@@ -29,14 +30,14 @@ public class Vertex {
 		this.value = value;
 	}
 
-	private Map<String, Integer> outgoingEdges;
+	private List<Edge> outgoingEdges;
 
-	public Vertex(String vertexID, Integer value,  Map<String, Integer> outgoingEdges) {
+	public Vertex(String vertexID, Integer value,  List<Edge> outgoingEdges) {
 		this.vertexID = vertexID;
 		this.value = value;
 		this.outgoingEdges = outgoingEdges;
 		if(outgoingEdges==null){
-			this.outgoingEdges=new LinkedHashMap<String, Integer>();
+			this.outgoingEdges=new Vector<Edge>();
 		}
 	}
 
@@ -62,17 +63,11 @@ public class Vertex {
 		 * outgoingVertices[1] = C:5
 		 * outgoingVertices[2] = D:25
 		 */
-		String[] outgoingVertices = vertexToEdges[1].split(vertexToVertexSep);
-		this.outgoingEdges=new LinkedHashMap<String, Integer>();
-		for (String vertexDetail : outgoingVertices) {
-			String[] vertexToCost=vertexDetail.split(vertexToCostSep);
-			if(vertexToCost.length!=2){
-				throw new IllegalInputException(adjacencyListRecord+" ---   "+vertexToEdges[1]+"  ----  "+vertexDetail);
-			}
-			String outgoingVertexId=vertexToCost[0];
-			
-			this.outgoingEdges.put(outgoingVertexId,Integer.parseInt(vertexToCost[1]));
-			
+		String[] outgoingEdges = vertexToEdges[1].split(edgesSep);
+		this.outgoingEdges=new Vector<Edge>();
+		for (String edgeDetail : outgoingEdges) {
+			Edge e=new Edge(this.getVertexID(), edgeDetail);
+			this.outgoingEdges.add(e);
 		}
 
 	}
@@ -80,24 +75,21 @@ public class Vertex {
 	
 	public String toString(){
 		String str=this.getVertexID()+vertexToEdgesSep;
-		Set<Map.Entry<String,Integer>> mapEntries = outgoingEdges.entrySet();
 		
 		boolean firstItemCrossed=false;
-		for(Map.Entry<String,Integer> e : mapEntries){
+		for(Edge e : outgoingEdges){
 			if(firstItemCrossed){
-				str+=vertexToVertexSep;
+				str+=edgesSep;
 			}
 			firstItemCrossed=true;
-			str+=e.getKey();
-			str+=vertexToCostSep;
-			str+=e.getValue();
+			str+=e.toString();
 		}
 		
 		return str;
 	}
 	
-/*	public static void main(String[] args) throws IllegalInputException{
-		String a="A->B:25,C:35,D:45";
+	public static void main(String[] args) throws IllegalInputException{
+		String a="A->B:25,C:35,D:45,E:34";
 		String b="B->D:34,E:12,F:56";
 		
 		Vertex va=new Vertex(a);
@@ -106,5 +98,5 @@ public class Vertex {
 		System.err.println(va);
 		System.err.println(vb);
 		
-	}*/
+	}
 }

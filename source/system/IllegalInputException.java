@@ -7,7 +7,7 @@ public class IllegalInputException extends Exception{
 	}
 	
 	public String toString(){
-		return "Vertex cannot read malformed record "+super.getMessage();
+		return "Cannot read malformed record "+super.getMessage();
 	}
 
 }
