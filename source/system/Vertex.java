@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-public class Vertex {
+public abstract class Vertex {
 
 	private String vertexID;
 	public static final String vertexToEdgesSep = "->";
@@ -32,7 +32,8 @@ public class Vertex {
 
 	private List<Edge> outgoingEdges;
 
-	public Vertex(String vertexID, Integer value,  List<Edge> outgoingEdges) {
+	
+	public void initialize(String vertexID, Integer value,  List<Edge> outgoingEdges){
 		this.vertexID = vertexID;
 		this.value = value;
 		this.outgoingEdges = outgoingEdges;
@@ -41,8 +42,9 @@ public class Vertex {
 		}
 	}
 
-	public Vertex(String adjacencyListRecord) throws IllegalInputException {
-		
+	
+	
+	public void initialize(String adjacencyListRecord) throws IllegalInputException{
 		// Example : A->B:3,C:5,D:25
 
 		/*
@@ -69,9 +71,7 @@ public class Vertex {
 			Edge e=new Edge(this.getVertexID(), edgeDetail);
 			this.outgoingEdges.add(e);
 		}
-
 	}
-	
 	
 	public String toString(){
 		String str=this.getVertexID()+vertexToEdgesSep;
@@ -87,8 +87,31 @@ public class Vertex {
 		
 		return str;
 	}
+
+	public int getSuperStep(){
+		return 1;
+		
+	}
 	
-	public static void main(String[] args) throws IllegalInputException{
+	public List<Edge> getEdges(){
+		return this.outgoingEdges;
+	}
+	
+	
+	public void setEdges(List<Edge> edges){
+		this.outgoingEdges=edges;
+	}
+	
+	
+	public void voteToHalt(){
+		
+	}
+	
+	public void sendMessage(Edge e, int msgValue){
+		
+	}
+	
+	/*public static void main(String[] args) throws IllegalInputException{
 		String a="A->B:25,C:35,D:45,E:34";
 		String b="B->D:34,E:12,F:56";
 		
@@ -98,5 +121,12 @@ public class Vertex {
 		System.err.println(va);
 		System.err.println(vb);
 		
+	}*/
+	
+	public abstract void compute(List<Message> msgs);
+	
+	public int getNumberOfVertices(){
+		return 1;
 	}
+
 }

@@ -6,7 +6,8 @@
         Builds, testes and runs JPregel.
     </description>
     
-    
+	<!-- client's vertex class -->
+    <property name="vertex_class" value="system.VertexTest"/>
     
     <!-- codebase properties -->
     
@@ -78,6 +79,7 @@
         <java classname="system.WorkerManagerImpl" fork="true">
             <jvmarg value="-Djava.security.policy=policy/policy"/>
             <arg value="localhost:${port}"/>
+			<arg value="${vertex_class}"/>
             <classpath>
                 <pathelement location="${dist}/jpregel.jar"/>
             </classpath>
@@ -90,6 +92,7 @@
         <java classname="system.WorkerManagerImpl" fork="true">
             <jvmarg value="-Djava.security.policy=policy/policy"/>
             <arg value="${master}:${port}"/>
+			<arg value="${vertex_class}"/>
             <classpath>
                 <pathelement location="${dist}/jpregel.jar"/>
             </classpath>
@@ -102,7 +105,7 @@
         
         <!-- run worker manager in remote hosts -->
         <parallel>
-            <sshexec host="${host1}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
+            <sshexec host="${host1}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
         </parallel>
     </target>
     
@@ -110,10 +113,10 @@
         
         <!-- run worker managers in remote hosts -->
         <parallel>
-            <sshexec host="${host1}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host2}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host3}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host4}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
+            <sshexec host="${host1}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host2}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host3}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host4}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
         </parallel>
     </target>
     
@@ -121,22 +124,22 @@
         
         <!-- run worker managers in remote hosts -->
         <parallel>
-            <sshexec host="${host1}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host2}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host3}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host4}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host5}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host6}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host7}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host8}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host9}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host10}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host11}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host12}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host13}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host14}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host15}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
-            <sshexec host="${host16}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager" passphrase=""/>
+            <sshexec host="${host1}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host2}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host3}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host4}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host5}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host6}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host7}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host8}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host9}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host10}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host11}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host12}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host13}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host14}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host15}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
+            <sshexec host="${host16}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runWkrManager -Dvertex_class=${vertex_class}" passphrase=""/>
         </parallel>
     </target>
     
@@ -169,9 +172,10 @@
     
     <target name="runLocalMaster" depends="build_jpregel" description="starts master locally">
         
-        <!-- run space -->
+        <!-- run master -->
         <java classname="system.MasterImpl" fork="true">
             <jvmarg value="-Djava.security.policy=policy/policy"/>
+			<arg value="${vertex_class}"/>
             <classpath>
                 <pathelement location="${dist}/jpregel.jar"/>
             </classpath>
@@ -182,17 +186,19 @@
     
     <target name="runRemoteMaster" depends="build_jpregel" description="starts master remotely  through ssh">
         
-        <!-- run compute space in remote hosts -->
-        <sshexec host="${master}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runJPregel -Dusername=${username}" passphrase=""/>
+        <!-- run master in remote hosts -->
+        <sshexec host="${master}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runJPregel -Dusername=${username} -Dvertex_class=${vertex_class}" passphrase=""/>
         
         
     </target>
     
     <target name="runMaster" description="runs master on the remote host">
         
-        <!-- run remote space -->
+        <!-- run remote master -->
         <java classname="system.MasterImpl" fork="true">
             <jvmarg value="-Djava.security.policy=policy/policy"/>
+			<jvmarg value="-Dvertex_class=${vertex_class}"/>
+			<arg value="${vertex_class}"/>
             <classpath>
                 <pathelement location="${dist}/jpregel.jar"/>
             </classpath>

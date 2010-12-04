@@ -7,7 +7,10 @@ import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+
+//Partitions the graph into several chunks
 public class GraphPartitioner {
+	private String vertexClassName;
 	private String graphFile;
 	private MasterImpl master;
 	private List<GraphPartition> listOfPartitions;
@@ -17,9 +20,10 @@ public class GraphPartitioner {
 			+ "graphpartitioner";
 	private static final String LOG_FILE_SUFFIX = ".log";
 
-	public GraphPartitioner(String graphFile, final MasterImpl master)
+	public GraphPartitioner(String graphFile, final MasterImpl master, String vertexClassName)
 			throws IOException {
 		this();
+		this.vertexClassName=vertexClassName;
 		this.graphFile = graphFile;
 		this.master = master;
 		this.listOfPartitions = new Vector<GraphPartition>();
@@ -47,16 +51,20 @@ public class GraphPartitioner {
 	}
 
 	public int partitionGraphs() throws IOException, IllegalInputException,
-			DataNotFoundException {
-		// number of workers
-		// number of threads
-		// number of lines
-
+			DataNotFoundException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+		
+		// number of worker managers in the system
 		int numWorkers = master.getWorkerMgrsCount();
+		
+		// number of threads in each worker manager
 		int numThreads = master.getWorkerMgrThreads();
+		
+		// number of lines in the input graph
 		int numLines = this.countLines();
+		
 		logger.info("Lines : " + numLines);
 
+		//Average no. of lines in a graph partition
 		int avgPartitionSize = numThreads * numWorkers;
 		
 		logger.info("Average Partition Size : "+avgPartitionSize);
@@ -70,7 +78,8 @@ public class GraphPartitioner {
 			while (thisPartitionSize < avgPartitionSize
 					&& (line = buffRdr.readLine()) != null) {
 				thisPartitionSize++;
-				Vertex newVertex = new Vertex(line);
+				Vertex newVertex = (Vertex)(Class.forName(vertexClassName).newInstance());
+				newVertex.initialize(line);
 				listOfVertices.add(newVertex);
 			}
 
@@ -93,9 +102,12 @@ public class GraphPartitioner {
 		return listOfPartitions.size();
 	}
 
+	//Returns number of partitions
 	public int getNumberOfPartitions(){
 		return listOfPartitions.size();
 	}
+	
+	//Counts the line in the input graph
 	private int countLines() throws IOException {
 		BufferedReader buffRdr = new BufferedReader(new FileReader(
 				this.graphFile));

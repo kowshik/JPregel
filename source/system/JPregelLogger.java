@@ -16,27 +16,27 @@ import java.util.logging.SimpleFormatter;
  *
  */
 public class JPregelLogger {
-	public static Logger getLogger(String id, String logFile) throws IOException {
+	public static Logger getLogger(String classId, String logFile) throws IOException {
 		File logDir = new File(JPregelConstants.LOG_DIR);
 		
 		if(!logDir.exists() &&  !logDir.mkdirs()){
 			throw new IOException("Can't create root log dir : "+JPregelConstants.LOG_DIR);
 		}
-		Logger aLogger = Logger.getLogger(id);
+		Logger aLogger = Logger.getLogger(classId);
 		//logger.setUseParentHandlers(false);
 		Handler logHandle = null;
 		try {
 			logHandle = new FileHandler(logFile);
 		} catch (SecurityException e) {
-			System.err.println("Can't init logger in "+id);
+			System.err.println("Can't init logger in "+classId);
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.err.println("Can't init logger in "+id);
+			System.err.println("Can't init logger in "+classId);
 			e.printStackTrace();
 		}
 		logHandle.setFormatter(new SimpleFormatter());
 		aLogger.addHandler(logHandle);
-		aLogger.info("init "+id+" Logger successful");
+		aLogger.info("init "+classId+" Logger successful");
 		return aLogger;
 	}
 }

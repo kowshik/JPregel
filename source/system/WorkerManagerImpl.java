@@ -37,6 +37,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	private ManagerToMaster master;
 
 	private List<Worker> workers;
+	private String vertexClassName;
 
 	private void initLogger() throws IOException {
 		this.logger = JPregelLogger.getLogger(this.getId(), LOG_FILE_PREFIX
@@ -50,10 +51,10 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		this.initLogger();
 	}
 
-	public WorkerManagerImpl(ManagerToMaster master) throws IOException {
+	public WorkerManagerImpl(ManagerToMaster master, String vertexClassName) throws IOException {
 		this();
 		this.master = master;
-
+		this.vertexClassName=vertexClassName;
 	}
 
 	/**
@@ -86,8 +87,20 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		return id;
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, IllegalClassException {
 		String masterServer = args[0];
+		String vertexClassName = args[1];
+		try {
+			Class c = Class.forName(vertexClassName);
+			if (!c.getSuperclass().equals(Vertex.class)) {
+				throw new IllegalClassException(vertexClassName);
+			}
+
+		} catch (ClassNotFoundException e) {
+			System.err.println("Client vertex class not found !");
+			e.printStackTrace();
+		}
+		
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
@@ -95,7 +108,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 
 			ManagerToMaster master = (ManagerToMaster) Naming.lookup("//"
 					+ masterServer + "/" + ManagerToMaster.SERVICE_NAME);
-			WorkerManagerImpl mgr = new WorkerManagerImpl(master);
+			WorkerManagerImpl mgr = new WorkerManagerImpl(master,vertexClassName);
 			master.register(mgr, mgr.getId());
 			System.out.println("Worker Manager ready : " + mgr.getId());
 		} catch (RemoteException e) {
@@ -154,7 +167,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 						}
 					}
 					Worker aWkr = new Worker(new Vector<Integer>(
-							threadPartitions), this);
+							threadPartitions), this,vertexClassName);
 					this.workers.add(aWkr);
 					logger.info("Added new worker : " + aWkr);
 				} catch (DataNotFoundException e) {
@@ -169,6 +182,18 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 					logger.severe("Unable to read partitions in worker manager : "
 							+ this.getId());
 					e.printStackTrace();
+				} catch (InstantiationException e) {
+					logger.severe("Unable to instantiate client vertex class : "
+							+ vertexClassName);
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					logger.severe("Unable to instantiate client vertex class : "
+							+ vertexClassName);
+					e.printStackTrace();
+				} catch (ClassNotFoundException e) {
+					logger.severe("Client vertex class not found : "
+							+ vertexClassName);
+					e.printStackTrace();
 				}
 			}
 
@@ -177,6 +202,24 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		logger.info("Initialized worker manager : " + this.getId()
 				+ "\n\n Workers are : " + workers);
 
+	}
+
+	/* (non-Javadoc)
+	 * @see system.WorkerManager#executeSuperStep()
+	 */
+	@Override
+	public void beginSuperStep() throws RemoteException {
+		logger.info("Beginning superstep");
+		for(Worker aWorker : this.workers){
+			aWorker.setState(Worker.WorkerState.EXECUTE);
+		}
+		
+	}
+	
+	
+	
+	public  synchronized void endSuperStep() throws RemoteException {
+		
 	}
 
 }

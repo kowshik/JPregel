@@ -10,6 +10,8 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import system.Worker.WorkerState;
+
 /**
  * @author Manasa Chandrasekhar
  * @author Kowshik Prakasam
@@ -17,18 +19,26 @@ import java.util.logging.Logger;
  */
 public class Worker implements Runnable {
 
+	private Thread t;
 	private List<GraphPartition> listOfPartitions;
 	private String id;
 	private Logger logger;
 	private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR+"worker_";
 	private static final String LOG_FILE_SUFFIX = ".log";
+	public static enum WorkerState {EXECUTE, STOP};
 	private WorkerManager mgr;
+	private String vertexClassName;
+	private WorkerState workerState;
 	
-	private Worker(WorkerManager mgr) throws IOException {
+	private Worker(WorkerManager mgr, String vertexClassName) throws IOException {
+		this.workerState=WorkerState.STOP;
 		this.mgr=mgr;
+		this.vertexClassName=vertexClassName;
 		this.listOfPartitions=new Vector<GraphPartition>();
 		this.setId(mgr.getId() + "_" + Worker.getRandomChars());
 		this.initLogger();
+		t=new Thread(this,this.getId());
+		t.start();
 	}
 
 	/**
@@ -53,28 +63,52 @@ public class Worker implements Runnable {
 		return id;
 	}
 
-	public Worker(List<Integer> partitionNumers, WorkerManager mgr) throws DataNotFoundException,
-			IOException, IllegalInputException {
-		this(mgr);
+	public Worker(List<Integer> partitionNumers, WorkerManager mgr, String vertexClassName) throws DataNotFoundException,
+			IOException, IllegalInputException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+		this(mgr,vertexClassName);
 		logger.info("Worker : "+this.getId()+" received partitions : "+partitionNumers);
 		DataLocator theDataLocator = DataLocator.getDataLocator();
 		for (Integer partitionNumber : partitionNumers) {
 			String partitionFile = theDataLocator
 					.getPartitionFile(partitionNumber);
-			GraphPartition aGraphPartition = new GraphPartition(partitionFile);
+			GraphPartition aGraphPartition = new GraphPartition(partitionFile,this.vertexClassName);
 			logger.info("Worker : "+this.getId()+" initialized partition : "+partitionFile);
 			this.listOfPartitions.add(aGraphPartition);
 		}
-
-		logger.info("Initialized worker with partitions");
+		
+		logger.info("Initialized worker with "+this.listOfPartitions.size()+" partitions");
 		logger.info("Partitions are : \n\n"+this.listOfPartitions);
 		
 	}
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
+		while(true){
+			if(this.getState() == WorkerState.EXECUTE){
+				for(GraphPartition gPartition : this.listOfPartitions){
+					for(Vertex v : gPartition.getVertices()){
+						v.compute(null);
+						logger.info("Executed compute() on vertex : "+v.toString());
+					}
+				}
+				this.setState(WorkerState.STOP);
+			}
+		}
 
+	}
+
+	/**
+	 * @return
+	 */
+	public synchronized WorkerState getState() {
+		return this.workerState;
+	}
+	
+	/**
+	 * @return
+	 */
+	public synchronized void setState(WorkerState newState) {
+		this.workerState = newState;
 	}
 
 	/**

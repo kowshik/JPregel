@@ -37,15 +37,27 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 	private Map<WorkerManager, WORKER_MANAGER_STATE> activeWorkerMgrs;
 	private Logger logger;
 	private String id;
+	private String vertexClassName;
+
+	public String getVertexClassName() {
+		return vertexClassName;
+	}
+
+	public void setVertexClassName(String vertexClassName) {
+		this.vertexClassName = vertexClassName;
+		logger.info("set vertexClassName : " + vertexClassName);
+	}
 
 	private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR
 			+ "master";
 	private static final String LOG_FILE_SUFFIX = ".log";
 	private static final int PORT_NUMBER = 3672;
 
-	public MasterImpl() throws IOException {
+	public MasterImpl(String vertexClassName) throws IOException {
+
 		this.setId("Master");
 		initLogger();
+		this.setVertexClassName(vertexClassName);
 		this.idManagerMap = new HashMap<String, WorkerManager>();
 		this.activeWorkerMgrs = new HashMap<WorkerManager, WORKER_MANAGER_STATE>();
 	}
@@ -78,20 +90,31 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		this.activeWorkerMgrs.put(aWorkerManager, WORKER_MANAGER_STATE.ACTIVE);
 		logger.info("registered state of worker : " + id + " to "
 				+ WORKER_MANAGER_STATE.ACTIVE);
-		
-		if(idManagerMap.size()==1){
+
+		if (idManagerMap.size() == 3) {
 			executeTask();
 		}
 
 	}
 
-	public static void main(String args[]) {
+	public static void main(String args[]) throws IllegalClassException {
+		String vertexClassName = args[0];
+		try {
+			Class c = Class.forName(vertexClassName);
+			if (!c.getSuperclass().equals(Vertex.class)) {
+				throw new IllegalClassException(vertexClassName);
+			}
+
+		} catch (ClassNotFoundException e) {
+			System.err.println("Client vertex class not found !");
+			e.printStackTrace();
+		}
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
 		try {
 
-			MasterToClient master = new MasterImpl();
+			MasterToClient master = new MasterImpl(vertexClassName);
 			Registry registry = LocateRegistry.createRegistry(PORT_NUMBER);
 			registry.rebind(MasterToClient.SERVICE_NAME, master);
 			System.err.println("Master instance bound");
@@ -115,6 +138,9 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 
 		try {
 			initializeWorkerManagers();
+			for (Map.Entry<String, WorkerManager> e : this.idManagerMap.entrySet()) {
+				e.getValue().beginSuperStep();
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -122,6 +148,15 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (DataNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -132,13 +167,16 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 	 * @throws IOException
 	 * @throws DataNotFoundException
 	 * @throws IllegalInputException
+	 * @throws ClassNotFoundException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 * 
 	 */
 	private void initializeWorkerManagers() throws IOException,
-			IllegalInputException, DataNotFoundException {
+			IllegalInputException, DataNotFoundException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
 		GraphPartitioner gp = new GraphPartitioner(JPregelConstants.GRAPH_FILE,
-				this);
+				this,this.vertexClassName);
 		int numPartitions = gp.partitionGraphs();
 
 		List<Integer> wkrMgrPartitions = new Vector<Integer>();
@@ -149,7 +187,8 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		WorkerManager thisWkrMgr = null;
 		for (Map.Entry<String, WorkerManager> e : this.idManagerMap.entrySet()) {
 			if (thisWkrMgr != null) {
-				logger.info("Initializing worker manager : "+thisWkrMgr.getId());
+				logger.info("Initializing worker manager : "
+						+ thisWkrMgr.getId());
 				thisWkrMgr.initialize(wkrMgrPartitions,
 						this.getWorkerMgrThreads());
 			}
@@ -166,8 +205,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 			wkrMgrPartitions.add(partitionCount);
 			partitionCount++;
 		}
-		thisWkrMgr.initialize(wkrMgrPartitions,
-				this.getWorkerMgrThreads());
+		thisWkrMgr.initialize(wkrMgrPartitions, this.getWorkerMgrThreads());
 
 		logger.info("Initialized worker managers : ");
 

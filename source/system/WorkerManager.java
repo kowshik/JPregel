@@ -18,4 +18,7 @@ public interface WorkerManager extends java.rmi.Remote {
 	
 	void initialize(List< Integer > partitionNumbers, int numWorkers) throws RemoteException;
 	
+	void beginSuperStep() throws RemoteException;
+	
+	
 }

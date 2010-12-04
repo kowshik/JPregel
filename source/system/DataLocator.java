@@ -7,11 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-/**
- * @author Manasa Chandrasekhar
- * @author Kowshik Prakasam
- * 
- */
+//Finds location of partitions and other data at runtime
 public class DataLocator {
 
 	private static DataLocator aDataLocator;

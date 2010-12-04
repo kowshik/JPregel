@@ -3,11 +3,7 @@
  */
 package system;
 
-/**
- * @author Manasa Chandrasekhar
- * @author Kowshik Prakasam
- *
- */
+//Abstracts an edge in a graph
 public class Edge {
 	public String sourceVertexID;
 	public static final String vertexToCostSep = ":";
