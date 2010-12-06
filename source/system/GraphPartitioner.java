@@ -14,8 +14,25 @@ public class GraphPartitioner {
 	private String graphFile;
 	private MasterImpl master;
 	private List<GraphPartition> listOfPartitions;
+	private int numVertices;
+	public int getNumVertices() {
+		return numVertices;
+	}
+
+	public void setNumVertices(int numVertices) {
+		this.numVertices = numVertices;
+	}
 
 	private Logger logger;
+	private int partitionSize;
+	public int getPartitionSize(){
+		return this.partitionSize;
+	}
+	
+	private void setPartitionSize(int partitionSize){
+		this.partitionSize=partitionSize;
+	}
+	
 	private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR
 			+ "graphpartitioner";
 	private static final String LOG_FILE_SUFFIX = ".log";
@@ -27,6 +44,21 @@ public class GraphPartitioner {
 		this.graphFile = graphFile;
 		this.master = master;
 		this.listOfPartitions = new Vector<GraphPartition>();
+		// number of worker managers in the system
+		int numWorkers = master.getWorkerMgrsCount();
+		
+		// number of threads in each worker manager
+		int numThreads = master.getWorkerMgrThreads();
+		
+		//Average no. of lines in a graph partition
+		this.setPartitionSize(numThreads * numWorkers);
+		
+		// number of lines in the input graph
+		setNumVertices(this.countLines());
+		
+		logger.info("Number of lines : " + getNumVertices());
+		logger.info("Partition Size : "+getPartitionSize());
+		
 	}
 
 	private void initLogger() throws IOException {
@@ -53,21 +85,6 @@ public class GraphPartitioner {
 	public int partitionGraphs() throws IOException, IllegalInputException,
 			DataNotFoundException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 		
-		// number of worker managers in the system
-		int numWorkers = master.getWorkerMgrsCount();
-		
-		// number of threads in each worker manager
-		int numThreads = master.getWorkerMgrThreads();
-		
-		// number of lines in the input graph
-		int numLines = this.countLines();
-		
-		logger.info("Lines : " + numLines);
-
-		//Average no. of lines in a graph partition
-		int avgPartitionSize = numThreads * numWorkers;
-		
-		logger.info("Average Partition Size : "+avgPartitionSize);
 		BufferedReader buffRdr = new BufferedReader(new FileReader(
 				this.graphFile));
 		String line = null;
@@ -75,7 +92,7 @@ public class GraphPartitioner {
 		while (true) {
 			thisPartitionSize = 0;
 			List<Vertex> listOfVertices = new Vector<Vertex>();
-			while (thisPartitionSize < avgPartitionSize
+			while (thisPartitionSize < partitionSize
 					&& (line = buffRdr.readLine()) != null) {
 				thisPartitionSize++;
 				Vertex newVertex = (Vertex)(Class.forName(vertexClassName).newInstance());
@@ -84,7 +101,7 @@ public class GraphPartitioner {
 			}
 
 			if (listOfVertices.size() > 0) {
-				String newPartitionFile = DataLocator.getDataLocator()
+				String newPartitionFile = DataLocator.getDataLocator(partitionSize)
 						.getPartitionFile(listOfPartitions.size());
 				GraphPartition newPartition = new GraphPartition(listOfVertices);
 				logger.info("Dumped : " + listOfVertices.size() + " to file : "

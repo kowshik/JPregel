@@ -23,7 +23,7 @@ public class JPregelLogger {
 			throw new IOException("Can't create root log dir : "+JPregelConstants.LOG_DIR);
 		}
 		Logger aLogger = Logger.getLogger(classId);
-		//logger.setUseParentHandlers(false);
+		aLogger.setUseParentHandlers(false);
 		Handler logHandle = null;
 		try {
 			logHandle = new FileHandler(logFile);

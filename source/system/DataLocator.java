@@ -3,14 +3,35 @@
  */
 package system;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 //Finds location of partitions and other data at runtime
 public class DataLocator {
 
+	/**
+	 * 
+	 */
+	private static final String PARTITION_WKRMGR_SEP = "-";
+	private static final String WKRMGR_HOSTNAME_SEP = ",";
 	private static DataLocator aDataLocator;
+	private int partitionSize;
+	
+	public int getPartitionSize() {
+		return partitionSize;
+	}
+
+
+	public void setPartitionSize(int partitionSize) {
+		this.partitionSize = partitionSize;
+	}
 
 	private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR+"datalocator";
 	private static final String LOG_FILE_SUFFIX = ".log";
@@ -22,6 +43,16 @@ public class DataLocator {
 	}
 
 	
+	/**
+	 * @param partitionSize
+	 * @throws IOException 
+	 */
+	public DataLocator(int partitionSize) throws IOException {
+		this();
+		this.partitionSize=partitionSize;
+	}
+
+
 	private void initLogger() throws IOException {
 		this.logger=JPregelLogger.getLogger(getId(), LOG_FILE_PREFIX+LOG_FILE_SUFFIX);
 	}
@@ -33,10 +64,11 @@ public class DataLocator {
 	}
 
 
-	public static DataLocator getDataLocator() throws IOException {
+	public static DataLocator getDataLocator(int partitionSize) throws IOException {
 		if (aDataLocator == null) {
-			aDataLocator = new DataLocator();
+			aDataLocator = new DataLocator(partitionSize);
 		}
+		aDataLocator.setPartitionSize(partitionSize);
 		return aDataLocator;
 	}
 
@@ -58,4 +90,56 @@ public class DataLocator {
 		}
 		return JPregelConstants.PARTITION_LOCATIONS;
 	}
+	
+	public String getPartitionMap() throws DataNotFoundException {
+		this.getPartitionLocations();
+		return JPregelConstants.PARTITION_MAP;
+	}
+	
+	public int getPartitionNumber(int vertexID){
+		return vertexID/getPartitionSize();
+	}
+
+
+	//Writes partition to worker manager ID map to file in the following format :
+	// 0:snoopy.cs.ucsb.edu_HJK,snoopy.cs.ucsb.edu
+	// 1:snoopy.cs.ucsb.edu_HJK,snoopy.cs.ucsb.edu
+	// 2:scooby.cs.ucsb.edu_MNJ,scooby.cs.ucsb.edu
+	// 3:scooby.cs.ucsb.edu_MNJ,scooby.cs.ucsb.edu
+	// .
+	// .
+	// .
+	// (n-1)th partition:blahblahblah.cs.ucsb.edu_HGJ,blahblahblah.cs.ucsb.edu
+	public void writePartitionMap(Map<Integer, Pair<String, String>> partitionWkrMgrMap) throws IOException, DataNotFoundException {
+		BufferedWriter buffWriter = new BufferedWriter(new FileWriter(getPartitionMap()));
+		for(Map.Entry<Integer, Pair<String, String>> e : partitionWkrMgrMap.entrySet()){
+			Pair<String, String> aPair=e.getValue();
+			String wkrMgrName=aPair.getFirst();
+			String wkrMgrHostName=aPair.getSecond();
+			buffWriter.write(e.getKey()+PARTITION_WKRMGR_SEP+wkrMgrName+WKRMGR_HOSTNAME_SEP+wkrMgrHostName+"\n");			
+		}
+		buffWriter.close();
+		
+	}
+	
+	//Reads data written out by the method writePartitionMap(...)
+	public Map<Integer, Pair<String, String>> readPartitionMap() throws IOException, DataNotFoundException {
+		Map<Integer, Pair<String, String>> partitionWkrMgrMap=new HashMap<Integer, Pair<String, String>>();
+		BufferedReader buffReader = new BufferedReader(new FileReader(getPartitionMap()));
+		String line = null;
+		while((line=buffReader.readLine())!=null){
+			String[] record=line.split(PARTITION_WKRMGR_SEP);
+			int partitionNumber = Integer.parseInt(record[0]);
+			String wkrMgrInfo=record[1];
+			record=wkrMgrInfo.split(WKRMGR_HOSTNAME_SEP);
+			String wkrMgrName=record[0];
+			String wkrMgrHostName=record[1];
+			Pair<String, String> aPair=new Pair<String, String>(wkrMgrName,wkrMgrHostName);
+			partitionWkrMgrMap.put(partitionNumber,aPair);
+		}
+		buffReader.close();
+		return partitionWkrMgrMap;
+	}
+	
+	
 }

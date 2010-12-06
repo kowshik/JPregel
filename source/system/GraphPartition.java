@@ -18,6 +18,7 @@ public class GraphPartition {
 	private List<Vertex> listOfVertices;
 	private String partitionFile;
 	private String vertexClassName;
+	private Worker aWorker;
 
 	// Converts the partition into a String representation
 	// Each line in the string representation is obtained
@@ -34,6 +35,9 @@ public class GraphPartition {
 
 	public GraphPartition(List<Vertex> listOfVertices) {
 		this.listOfVertices = listOfVertices;
+		for(Vertex v : listOfVertices){
+			v.setGraphPartition(this);
+		}
 
 	}
 
@@ -43,13 +47,21 @@ public class GraphPartition {
 		return this.partitionFile;
 	}
 
+	public GraphPartition(String inputFile, String vertexClassName, Worker aWorker)
+			throws IOException, IllegalInputException, InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
+		this(inputFile, vertexClassName);
+		
+		this.aWorker=aWorker;
+	}
+
 	public GraphPartition(String inputFile, String vertexClassName)
 			throws IOException, IllegalInputException, InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
 		this.vertexClassName = vertexClassName;
 		this.partitionFile = inputFile;
 		this.listOfVertices = readFromFile(inputFile);
-
+		
 	}
 
 	// Reads the physical partition from file and caches it.
@@ -65,7 +77,7 @@ public class GraphPartition {
 		while ((line = buffReader.readLine()) != null) {
 			Vertex aNewVertex = (Vertex) (Class.forName(vertexClassName)
 					.newInstance());
-			aNewVertex.initialize(line);
+			aNewVertex.initialize(line,this);
 			listOfVertices.add(aNewVertex);
 		}
 
@@ -96,5 +108,16 @@ public class GraphPartition {
 	public List<Vertex> getVertices() {
 		return this.listOfVertices;
 	}
-
+	
+	public void send(Message msg){
+		aWorker.send(msg);
+	}
+	
+	public int getSuperStep(){
+		return aWorker.getSuperStep();
+	}
+	
+	public int getTotalNumVertices(){
+		return aWorker.getNumVertices();
+	}
 }

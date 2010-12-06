@@ -64,18 +64,17 @@ public class GraphGenerator {
 						+ "->" + (i - 1));
 				cost = new Random().nextInt(this.maxcost);
 
-				newEdge = new Edge(Integer.toString(i),
-						Integer.toString(i - 1), cost);
+				newEdge = new Edge(i, i - 1, cost);
 				edgeList.add(newEdge);
 				existingNums.put(i - 1, VALUE);
 			}
 			destVertex = -1;
-			
+
 			while (numOutgoingEdges == -1) {
 				if (numOfVertices > 3) {
 					numOutgoingEdges = new Random().nextInt(numOfVertices / 2);
 				} else {
-					numOutgoingEdges = new Random().nextInt(numOfVertices -1 );
+					numOutgoingEdges = new Random().nextInt(numOfVertices - 1);
 				}
 			}
 			logger.info("No of outgoing edges for source " + i + " is "
@@ -86,24 +85,23 @@ public class GraphGenerator {
 				destVertex = new Random().nextInt(numOfVertices);
 
 				while (existingNums.containsKey(destVertex) && count < 5) {
-					
+
 					destVertex = new Random().nextInt(numOfVertices);
 					logger.info("Found dest vertex :" + destVertex);
 					count++;
 				}
-				if(count < 5) {
-				existingNums.put(destVertex, VALUE);
-				logger.info("Destination vertex is " + destVertex);
-				cost = new Random().nextInt(this.maxcost);
-				logger.info("Cost of the edge :" + cost);
-				newEdge = new Edge(Integer.toString(i),
-						Integer.toString(destVertex), cost);
-				edgeList.add(newEdge);
-				destVertex = -1;
+				if (count < 5) {
+					existingNums.put(destVertex, VALUE);
+					logger.info("Destination vertex is " + destVertex);
+					cost = new Random().nextInt(this.maxcost);
+					logger.info("Cost of the edge :" + cost);
+					newEdge = new Edge(i, destVertex, cost);
+					edgeList.add(newEdge);
+					destVertex = -1;
 
+				}
 			}
-			}
-			
+
 			// Vertex newVertex = new Vertex(Integer.toString(i), value,
 			// edgeList);
 			String edgeString = returnString(edgeList);

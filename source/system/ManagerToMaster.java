@@ -19,4 +19,5 @@ public interface ManagerToMaster  extends java.rmi.Remote{
 	
 	void register(WorkerManager aWorkerManager, String id)
 			throws RemoteException;
+	void endSuperStep(String wkrMgrId) throws RemoteException;
 }

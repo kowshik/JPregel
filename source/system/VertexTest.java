@@ -3,6 +3,7 @@
  */
 package system;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -11,22 +12,33 @@ import java.util.List;
  *
  */
 public class VertexTest extends Vertex{
-
-	/**
-	 * @param adjacencyListRecord
-	 * @throws IllegalInputException
-	 */
-	public VertexTest() throws IllegalInputException{
+	
+	
+	public VertexTest(){
 		
 	}
 
 	/* (non-Javadoc)
-	 * @see system.Vertex#compute(java.util.List)
+	 * @see system.Vertex#compute()
 	 */
 	@Override
-	public void compute(List<Message> msgs) {
-		// TODO Auto-generated method stub
-		
+	public void compute() {
+	
+		int maxVal=this.getValue();
+		boolean newMaxVal=false;
+		for(Message m : this.getMessages()){
+			if(m.getMessageValue() > maxVal){
+				maxVal=m.getMessageValue();
+				newMaxVal=true;
+			}
+		}
+		this.setValue(maxVal);
+		if(newMaxVal || this.getSuperStep()==JPregelConstants.FIRST_SUPERSTEP){
+			for(Edge e : this.getEdges()){
+				this.sendMessage(e, this.getValue());
+			}
+		}
 	}
 
+	
 }

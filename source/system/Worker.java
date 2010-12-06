@@ -4,13 +4,12 @@
 package system;
 
 import java.io.IOException;
-import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Logger;
-
-import system.Worker.WorkerState;
 
 /**
  * @author Manasa Chandrasekhar
@@ -19,35 +18,62 @@ import system.Worker.WorkerState;
  */
 public class Worker implements Runnable {
 
+	private int superStep;
+	public int getSuperStep() {
+		return superStep;
+	}
+
+	public void setSuperStep(int superStep) {
+		this.superStep = superStep;
+	}
+
 	private Thread t;
 	private List<GraphPartition> listOfPartitions;
+	private int partitionSize;
 	private String id;
 	private Logger logger;
-	private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR+"worker_";
+	private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR
+			+ "worker_";
 	private static final String LOG_FILE_SUFFIX = ".log";
-	public static enum WorkerState {EXECUTE, STOP};
+
+	public static enum WorkerState {
+		EXECUTE, DONE, STOP
+	};
+
 	private WorkerManager mgr;
 	private String vertexClassName;
-	private WorkerState workerState;
+	private WorkerState state;
+	private Communicator aCommunicator;
+	private int numVertices;
 	
-	private Worker(WorkerManager mgr, String vertexClassName) throws IOException {
-		this.workerState=WorkerState.STOP;
-		this.mgr=mgr;
-		this.vertexClassName=vertexClassName;
-		this.listOfPartitions=new Vector<GraphPartition>();
+	public int getNumVertices() {
+		return numVertices;
+	}
+
+	private Worker(WorkerManager mgr, String vertexClassName,
+			int partitionSize, Communicator aCommunicator, int numVertices) throws IOException {
+		this.state = WorkerState.STOP;
+		this.setSuperStep(JPregelConstants.DEFAULT_SUPERSTEP);
+		this.mgr = mgr;
+		this.vertexClassName = vertexClassName;
+		this.partitionSize = partitionSize;
+		this.aCommunicator = aCommunicator;
+		this.numVertices=numVertices;
+		this.listOfPartitions = new Vector<GraphPartition>();
 		this.setId(mgr.getId() + "_" + Worker.getRandomChars());
 		this.initLogger();
-		t=new Thread(this,this.getId());
+		t = new Thread(this, this.getId());
 		t.start();
 	}
 
 	/**
-	 * @throws IOException 
+	 * @throws IOException
 	 * 
 	 */
 	private void initLogger() throws IOException {
-		this.logger=JPregelLogger.getLogger(this.getId(), LOG_FILE_PREFIX+this.getId()+LOG_FILE_SUFFIX);
-		
+		this.logger = JPregelLogger.getLogger(this.getId(), LOG_FILE_PREFIX
+				+ this.getId() + LOG_FILE_SUFFIX);
+
 	}
 
 	/**
@@ -63,35 +89,46 @@ public class Worker implements Runnable {
 		return id;
 	}
 
-	public Worker(List<Integer> partitionNumers, WorkerManager mgr, String vertexClassName) throws DataNotFoundException,
-			IOException, IllegalInputException, InstantiationException, IllegalAccessException, ClassNotFoundException {
-		this(mgr,vertexClassName);
-		logger.info("Worker : "+this.getId()+" received partitions : "+partitionNumers);
-		DataLocator theDataLocator = DataLocator.getDataLocator();
+	public Worker(List<Integer> partitionNumers, int partitionSize,
+			WorkerManager mgr, String vertexClassName,
+			Communicator aCommunicator, int numVertices) throws DataNotFoundException,
+			IOException, IllegalInputException, InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
+		this(mgr, vertexClassName, partitionSize, aCommunicator, numVertices);
+		logger.info("Worker : " + this.getId() + " received partitions : "
+				+ partitionNumers);
+		DataLocator theDataLocator = DataLocator.getDataLocator(partitionSize);
 		for (Integer partitionNumber : partitionNumers) {
 			String partitionFile = theDataLocator
 					.getPartitionFile(partitionNumber);
-			GraphPartition aGraphPartition = new GraphPartition(partitionFile,this.vertexClassName);
-			logger.info("Worker : "+this.getId()+" initialized partition : "+partitionFile);
+			GraphPartition aGraphPartition = new GraphPartition(partitionFile,
+					this.vertexClassName, this);
+			logger.info("Worker : " + this.getId()
+					+ " initialized partition : " + partitionFile);
 			this.listOfPartitions.add(aGraphPartition);
 		}
-		
-		logger.info("Initialized worker with "+this.listOfPartitions.size()+" partitions");
-		logger.info("Partitions are : \n\n"+this.listOfPartitions);
-		
+
+		logger.info("Initialized worker with " + this.listOfPartitions.size()
+				+ " partitions");
+		logger.info("Partitions are : \n\n" + this.listOfPartitions);
+
 	}
 
 	@Override
 	public void run() {
-		while(true){
-			if(this.getState() == WorkerState.EXECUTE){
-				for(GraphPartition gPartition : this.listOfPartitions){
-					for(Vertex v : gPartition.getVertices()){
-						v.compute(null);
-						logger.info("Executed compute() on vertex : "+v.toString());
+		while (true) {
+			
+			if (this.getState() == WorkerState.EXECUTE) {
+				logger.info("Executing");
+				for (GraphPartition gPartition : this.listOfPartitions) {
+					for (Vertex v : gPartition.getVertices()) {			
+						logger.info("Starting initCompute() on vertex : "
+								+ v.toString()+" at superstep : "+getSuperStep());
+						v.initCompute();						
+						
 					}
 				}
-				this.setState(WorkerState.STOP);
+				this.setState(WorkerState.DONE);
 			}
 		}
 
@@ -101,14 +138,15 @@ public class Worker implements Runnable {
 	 * @return
 	 */
 	public synchronized WorkerState getState() {
-		return this.workerState;
+		return this.state;
 	}
-	
+
 	/**
 	 * @return
 	 */
 	public synchronized void setState(WorkerState newState) {
-		this.workerState = newState;
+		logger.info("Setting worker state to : " + newState);
+		this.state = newState;
 	}
 
 	/**
@@ -121,12 +159,33 @@ public class Worker implements Runnable {
 		char third = (char) ((new Random().nextInt(26)) + 65);
 		return "" + first + second + third;
 	}
-	
-	public String toString(){
+
+	public String toString() {
 		StringBuffer strBuf = new StringBuffer();
-		strBuf.append("Worker ID : "+this.getId()+"\n");
-		strBuf.append("Partitions : "+this.listOfPartitions.size()+"\n\n");
+		strBuf.append("Worker ID : " + this.getId() + "\n");
+		strBuf.append("Partitions : " + this.listOfPartitions.size() + "\n\n");
 		return strBuf.toString();
 	}
 
+	//queue message in communicator for next superstep
+	public void send(Message msg) {
+		logger.info("Attempting to queue msg : "+msg);
+		this.aCommunicator.queueMessage(msg);
+	}
+
+	// a hashmap of all vertexID->vertex managed by this worker, so the lookup
+	// time to distribute messages will be constant
+	public Map<Integer,Vertex> getVertices() {
+
+		Map<Integer,Vertex> idVertexMap = new HashMap<Integer,Vertex>();
+
+		for (GraphPartition gPartition : listOfPartitions) {
+			for (Vertex aVertex : gPartition.getVertices()) {
+				idVertexMap.put(aVertex.getVertexID(), aVertex);
+			}
+		}
+
+		return idVertexMap;
+
+	}
 }

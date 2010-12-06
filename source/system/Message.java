@@ -9,31 +9,45 @@ package system;
  *
  */
 public class Message {
-	public String sourceVertexID;
+	public int sourceVertexID;
 	
-	public String getSourceVertexID() {
+	public int getSourceVertexID() {
 		return sourceVertexID;
 	}
-
-
+	
+	private int destVertexID;
+	public int getDestVertexID() {
+		return destVertexID;
+	}
+	
 	public int msgValue;
+	
 	
 	public int getMessageValue() {
 		return msgValue;
 	}
 
-
-	public Message(String sourceVertexID, int msgValue){
-		if(sourceVertexID==null){
-			throw new NullPointerException("sourceVertexID = null");
-		}
+	public int superStep;
+	public int getSuperStep(){
+		return this.superStep;
+	}
+	
+	public Message(int sourceVertexID, int destVertexID, int msgValue, int superStep){
+	
 		this.sourceVertexID=sourceVertexID;
-		
+		this.destVertexID=destVertexID;		
 		this.msgValue=msgValue;
+		this.superStep=superStep;
 	}
 	
 	
 	public String toString(){
-		return this.getSourceVertexID()+":"+this.getMessageValue();
+		StringBuffer strBuf=new StringBuffer();
+		strBuf.append("\n\nSource Vertex ID : "+getSourceVertexID()+"\n");
+		strBuf.append("Destination Vertex ID : "+getDestVertexID()+"\n");
+		strBuf.append("Message Value : "+getMessageValue()+"\n");
+		strBuf.append("Source Superstep : "+getSuperStep()+"\n\n");
+		return strBuf.toString();
+		
 	}
 }

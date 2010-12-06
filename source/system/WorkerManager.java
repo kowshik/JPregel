@@ -11,14 +11,14 @@ import java.util.List;
  * @author Kowshik Prakasam
  *
  */
-public interface WorkerManager extends java.rmi.Remote {
+public interface WorkerManager extends java.rmi.Remote  {
 	
-	void compute() throws RemoteException;
 	String getId() throws RemoteException;
+	String getHostInfo() throws RemoteException;
 	
-	void initialize(List< Integer > partitionNumbers, int numWorkers) throws RemoteException;
+	void initialize(List< Integer > partitionNumbers, int numWorkers, int partitionSize, int totalVertices) throws RemoteException;
 	
-	void beginSuperStep() throws RemoteException;
+	void beginSuperStep(int superStepNumber) throws RemoteException;
 	
 	
 }
