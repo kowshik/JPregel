@@ -1,6 +1,8 @@
 package system;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -32,18 +34,27 @@ public abstract class Vertex {
 		this.vertexID = vertexID;
 	}
 
-	private Integer value;
+	private double value;
 
-	public Integer getValue() {
+	public double getValue() {
 		return value;
 	}
 
-	public void setValue(Integer value) {
+	public void setValue(double value) {
 		this.value = value;
 	}
 
 	private List<Edge> outgoingEdges;
 	private GraphPartition gPartition;
+	private String solutionFile;
+
+	public String getSolutionFile() {
+		return solutionFile;
+	}
+
+	public void setSolutionFile(String solutionFile) {
+		this.solutionFile = solutionFile;
+	}
 
 	public void setGraphPartition(GraphPartition aPartition) {
 		this.gPartition = aPartition;
@@ -65,6 +76,7 @@ public abstract class Vertex {
 	public void initialize(String adjacencyListRecord, GraphPartition partition)
 			throws IllegalInputException {
 		this.gPartition = partition;
+		this.solutionFile=null;
 		initialize(adjacencyListRecord);
 	}
 
@@ -95,7 +107,7 @@ public abstract class Vertex {
 		}
 
 		this.setVertexID(vertexID);
-		this.setValue(new Random().nextInt(100));
+		this.setValue(JPregelConstants.INFINITY);
 
 		/*
 		 * Example : B:3,C:5,D:25 is split into outgoingVertices[0] = B:3
@@ -141,7 +153,7 @@ public abstract class Vertex {
 
 	}
 
-	public void sendMessage(Edge e, int msgValue) {
+	public void sendMessage(Edge e, double msgValue) {
 		Message aMsg = new Message(e.getSourceVertexID(), e.getDestVertexID(),
 				msgValue,this.getSuperStep());
 		this.gPartition.send(aMsg);
@@ -185,4 +197,22 @@ public abstract class Vertex {
 		compute();
 		this.msgs.clear();
 	}
+
+	
+	/**
+	 * @param anOutputStream
+	 * @throws IOException
+	 */
+	public void writeSolution() throws IOException{
+		OutputStream anOutputStream = new FileOutputStream(solutionFile);
+		writeSolution(anOutputStream);
+	}
+	
+	
+	/**
+	 * @param anOutputStream
+	 * @throws IOException
+	 */
+	public abstract void writeSolution(OutputStream anOutputStream) throws IOException;
+	
 }

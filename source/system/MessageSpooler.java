@@ -10,7 +10,7 @@ import java.rmi.RemoteException;
  * @author Kowshik Prakasam
  *
  */
-public interface MessageSpooler {
+public interface MessageSpooler extends java.rmi.Remote {
 	void queueMessage(Message msg) throws RemoteException;
 	int getQueueSize() throws RemoteException;
 }

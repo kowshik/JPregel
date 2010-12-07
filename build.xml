@@ -6,8 +6,8 @@
         Builds, testes and runs JPregel.
     </description>
     
-	<!-- client's vertex class -->
-    <property name="vertex_class" value="system.VertexTest"/>
+    <!-- client's vertex class -->
+    <!-- property name="vertex_class" value="system.PageRankVertex"/ -->
     
     <!-- codebase properties -->
     
@@ -20,20 +20,21 @@
     <!-- host names -->
     <property name="host1" value="dudley.cs.ucsb.edu"/>
     <property name="host2" value="scooby.cs.ucsb.edu"/>
-    <property name="host3" value="megatron.cs.ucsb.edu"/>
+    <property name="host3" value="lisa.cs.ucsb.edu"/>
     <property name="host4" value="butthead.cs.ucsb.edu"/>
-    <property name="host5" value="lisa.cs.ucsb.edu"/>
+    <property name="host5" value="pinky.cs.ucsb.edu"/>
     <property name="host6" value="yogi.cs.ucsb.edu"/>
     <property name="host7" value="taz.cs.ucsb.edu"/>
     <property name="host8" value="speed.cs.ucsb.edu"/>
     <property name="host9" value="cartman.cs.ucsb.edu"/>
     <property name="host10" value="kyle.cs.ucsb.edu"/>
     <property name="host11" value="nat.cs.ucsb.edu"/>
-    <property name="host12" value="lupin.cs.ucsb.edu"/>
+    <property name="host12" value="booboo.cs.ucsb.edu"/>
     <property name="host13" value="beavis.cs.ucsb.edu"/>
     <property name="host14" value="brain.cs.ucsb.edu"/>
     <property name="host15" value="bugs.cs.ucsb.edu"/>
     <property name="host16" value="satchmo.cs.ucsb.edu"/>
+    
     <property name="master" value="snoopy.cs.ucsb.edu"/>
     
     <target name="clean" description="clean up">
@@ -72,6 +73,18 @@
     
     
     
+    <target name="runGraphGenerator" depends="build_jpregel" description="runs graph generator">
+        
+        <!-- runs graph generator -->
+        <java classname="system.GraphGenerator" fork="true">
+            <arg value="${num_vertices}"/>
+            <arg value="${max_cost}"/>
+            <classpath>
+                <pathelement location="${dist}/jpregel.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
     
     <target name="runLocalWkrManager" depends="build_jpregel" description="runs a worker manager locally">
         
@@ -79,7 +92,7 @@
         <java classname="system.WorkerManagerImpl" fork="true">
             <jvmarg value="-Djava.security.policy=policy/policy"/>
             <arg value="localhost:${port}"/>
-			<arg value="${vertex_class}"/>
+            <arg value="${vertex_class}"/>
             <classpath>
                 <pathelement location="${dist}/jpregel.jar"/>
             </classpath>
@@ -92,7 +105,7 @@
         <java classname="system.WorkerManagerImpl" fork="true">
             <jvmarg value="-Djava.security.policy=policy/policy"/>
             <arg value="${master}:${port}"/>
-			<arg value="${vertex_class}"/>
+            <arg value="${vertex_class}"/>
             <classpath>
                 <pathelement location="${dist}/jpregel.jar"/>
             </classpath>
@@ -175,7 +188,7 @@
         <!-- run master -->
         <java classname="system.MasterImpl" fork="true">
             <jvmarg value="-Djava.security.policy=policy/policy"/>
-			<arg value="${vertex_class}"/>
+            <arg value="${vertex_class}"/>
             <classpath>
                 <pathelement location="${dist}/jpregel.jar"/>
             </classpath>
@@ -187,7 +200,7 @@
     <target name="runRemoteMaster" depends="build_jpregel" description="starts master remotely  through ssh">
         
         <!-- run master in remote hosts -->
-        <sshexec host="${master}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runJPregel -Dusername=${username} -Dvertex_class=${vertex_class}" passphrase=""/>
+        <sshexec host="${master}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runMaster -Dusername=${username} -Dvertex_class=${vertex_class}" passphrase=""/>
         
         
     </target>
@@ -197,8 +210,8 @@
         <!-- run remote master -->
         <java classname="system.MasterImpl" fork="true">
             <jvmarg value="-Djava.security.policy=policy/policy"/>
-			<jvmarg value="-Dvertex_class=${vertex_class}"/>
-			<arg value="${vertex_class}"/>
+            <jvmarg value="-Dvertex_class=${vertex_class}"/>
+            <arg value="${vertex_class}"/>
             <classpath>
                 <pathelement location="${dist}/jpregel.jar"/>
             </classpath>

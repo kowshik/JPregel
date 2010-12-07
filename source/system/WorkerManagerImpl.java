@@ -347,4 +347,23 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see system.WorkerManager#writeSolutions()
+	 */
+	@Override
+	public void writeSolutions() throws RemoteException {
+		for (int index = 0; index < this.workers.size(); index++) {
+			Worker aWorker = this.workers.get(index);
+			try {
+				aWorker.writeSolutions();
+			} catch (IOException e) {
+				String msg = e.getMessage();
+				logger.severe(msg);
+				e.printStackTrace();
+				throw new RemoteException(msg, e);
+			}
+		}
+		
+	}
+
 }

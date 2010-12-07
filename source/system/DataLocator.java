@@ -80,7 +80,7 @@ public class DataLocator {
 	}
 
 	public String getPartitionLocations() throws DataNotFoundException {
-		File partitionLocations = new File(JPregelConstants.PARTITION_LOCATIONS);
+		File partitionLocations = new File(JPregelConstants.PARTITIONS_LOCATION);
 		if (!partitionLocations.exists() && !partitionLocations.mkdirs()) {
 			
 			String msg = "Unable to create location : "
@@ -88,7 +88,7 @@ public class DataLocator {
 			logger.severe(msg);
 			throw new DataNotFoundException(msg);
 		}
-		return JPregelConstants.PARTITION_LOCATIONS;
+		return JPregelConstants.PARTITIONS_LOCATION;
 	}
 	
 	public String getPartitionMap() throws DataNotFoundException {
@@ -141,5 +141,28 @@ public class DataLocator {
 		return partitionWkrMgrMap;
 	}
 	
+	
+	//Returns the output solution file for any vertex
+	public String getVertexFile(int vertexID){
+		String vertexFilePath=JPregelConstants.SOLUTIONS_LOCATION+vertexID+JPregelConstants.DATA_FILE_EXTENSION;
+		return vertexFilePath;
+	}
+	
+	
+	public void clearSolutions() throws DataNotFoundException{
+		File solnsLocation=new File(JPregelConstants.SOLUTIONS_LOCATION);
+		if(solnsLocation.exists()){
+			File[] fileList=solnsLocation.listFiles();
+			for(File f : fileList){
+				f.delete();
+			}
+		}else{
+			if(!solnsLocation.mkdirs()){
+				String msg = "Unable to create location : "
+					+ solnsLocation.getAbsolutePath();
+				throw new DataNotFoundException(msg);
+			}
+		}
+	}
 	
 }

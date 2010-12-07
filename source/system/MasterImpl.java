@@ -104,7 +104,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		logger.info("registered state of worker : " + id + " to "
 				+ WORKER_MANAGER_STATE.ACTIVE);
 
-		if (idManagerMap.size() == 3) {
+		if (idManagerMap.size() == 16) {
 			executeTask();
 		}
 
@@ -154,13 +154,13 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 
 	public void run() {
 		try {
+			
 			initializeWorkerManagers();
-			while (this.getSuperStep() <= 500) {
+			while (findActiveManagers(this.getSuperStep())>0) {
 				try {
 					Thread.sleep(10);
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 				this.setAllDone(false);
 				this.activeMgrs = this.idManagerMap.size();
@@ -180,7 +180,14 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 				logger.info("Superstep over : " + this.getSuperStep());
 				this.setSuperStep(this.getSuperStep() + 1);
 			}
-		} catch (IOException e) {
+			logger.info("-----------------------------------------------------");
+			logger.info("Writing Solutions");
+			//Writing solutions
+			writeSolutions();
+			
+			
+		} catch (IOException e)
+		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalInputException e) {
@@ -200,6 +207,39 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 			e.printStackTrace();
 		}
 
+	}
+
+	/**
+	 * @throws RemoteException 
+	 * 
+	 */
+	private void writeSolutions() throws RemoteException {
+		for (Map.Entry<String, WorkerManager> e : this.idManagerMap
+				.entrySet()) {
+			WorkerManager aWkrMgr=e.getValue();
+			aWkrMgr.writeSolutions();
+		}
+		
+	}
+
+	/**
+	 * @return
+	 * @throws RemoteException 
+	 */
+	private int findActiveManagers(int superStep) throws RemoteException {
+		if(superStep == JPregelConstants.FIRST_SUPERSTEP){
+			return this.idManagerMap.size();
+		}
+		int activeManagers=0;
+		for (Map.Entry<String, WorkerManager> e : this.idManagerMap
+				.entrySet()) {
+			MessageSpooler aSpooler=(MessageSpooler)e.getValue();
+			if(aSpooler.getQueueSize()>0){
+				activeManagers++;
+			}
+		}
+		return activeManagers;
+		
 	}
 
 	/**
@@ -269,7 +309,8 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		DataLocator dl = DataLocator.getDataLocator(gp.getPartitionSize());
 		dl.writePartitionMap(partitionWkrMgrMap);
 		logger.info("Initialized worker managers : ");
-
+		dl.clearSolutions();
+		logger.info("Cleared solutions folder");
 	}
 
 	/*

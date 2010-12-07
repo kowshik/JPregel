@@ -19,6 +19,7 @@ public class GraphPartition {
 	private String partitionFile;
 	private String vertexClassName;
 	private Worker aWorker;
+	private DataLocator aDataLocator;
 
 	// Converts the partition into a String representation
 	// Each line in the string representation is obtained
@@ -47,12 +48,13 @@ public class GraphPartition {
 		return this.partitionFile;
 	}
 
-	public GraphPartition(String inputFile, String vertexClassName, Worker aWorker)
+	public GraphPartition(String inputFile, String vertexClassName, Worker aWorker, DataLocator aDataLocator)
 			throws IOException, IllegalInputException, InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
 		this(inputFile, vertexClassName);
-		
+		this.aDataLocator=aDataLocator;
 		this.aWorker=aWorker;
+		this.listOfVertices = readFromFile(inputFile);
 	}
 
 	public GraphPartition(String inputFile, String vertexClassName)
@@ -60,7 +62,7 @@ public class GraphPartition {
 			IllegalAccessException, ClassNotFoundException {
 		this.vertexClassName = vertexClassName;
 		this.partitionFile = inputFile;
-		this.listOfVertices = readFromFile(inputFile);
+		
 		
 	}
 
@@ -76,8 +78,10 @@ public class GraphPartition {
 		List<Vertex> listOfVertices = new Vector<Vertex>();
 		while ((line = buffReader.readLine()) != null) {
 			Vertex aNewVertex = (Vertex) (Class.forName(vertexClassName)
-					.newInstance());
+					.newInstance());			
 			aNewVertex.initialize(line,this);
+			String vtxSolnFile=aDataLocator.getVertexFile(aNewVertex.getVertexID());
+			aNewVertex.setSolutionFile(vtxSolnFile);
 			listOfVertices.add(aNewVertex);
 		}
 
@@ -119,5 +123,12 @@ public class GraphPartition {
 	
 	public int getTotalNumVertices(){
 		return aWorker.getNumVertices();
+	}
+	
+	
+	public void writeSolutions() throws IOException{
+		for(Vertex v : getVertices()){
+			v.writeSolution();
+		}
 	}
 }

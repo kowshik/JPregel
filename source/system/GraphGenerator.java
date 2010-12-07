@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 public class GraphGenerator {
 
 	private int numOfVertices;
-	private String graphFilePath = JPregelConstants.BASE_DIR + "graph.dat";
+	private String graphFilePath = JPregelConstants.GRAPH_FILE;
 	private int maxcost;
 	private String vertexToEdgeSep = "->";
 	private String edgeSep = ",";
@@ -56,12 +56,12 @@ public class GraphGenerator {
 		for (int i = 0; i < numOfVertices; i++) {
 			existingNums.clear();
 			existingNums.put(i, VALUE);
-			logger.info("Source vertex id :" + i);
+			//logger.info("Source vertex id :" + i);
 			edgeList.clear();
 
 			if (i != 0) {
-				logger.info("Adding an edge to the previous vertex : " + i
-						+ "->" + (i - 1));
+				//logger.info("Adding an edge to the previous vertex : " + i
+						//+ "->" + (i - 1));
 				cost = new Random().nextInt(this.maxcost);
 
 				newEdge = new Edge(i, i - 1, cost);
@@ -71,14 +71,18 @@ public class GraphGenerator {
 			destVertex = -1;
 
 			while (numOutgoingEdges == -1) {
-				if (numOfVertices > 3) {
-					numOutgoingEdges = new Random().nextInt(numOfVertices / 2);
-				} else {
-					numOutgoingEdges = new Random().nextInt(numOfVertices - 1);
+				if(numOfVertices == 2){
+					numOutgoingEdges = 1;
 				}
+				else if(numOfVertices == 3){
+					numOutgoingEdges = new Random().nextInt(numOfVertices - 2)+1;
+				}
+				else {
+					numOutgoingEdges = new Random().nextInt(numOfVertices / 2)+1;
+				}  
 			}
-			logger.info("No of outgoing edges for source " + i + " is "
-					+ numOutgoingEdges);
+			//logger.info("No of outgoing edges for source " + i + " is "
+					//+ numOutgoingEdges);
 			for (int j = 0; j < numOutgoingEdges; j++) {
 
 				int count = 0;
@@ -87,14 +91,14 @@ public class GraphGenerator {
 				while (existingNums.containsKey(destVertex) && count < 5) {
 
 					destVertex = new Random().nextInt(numOfVertices);
-					logger.info("Found dest vertex :" + destVertex);
+					//logger.info("Found dest vertex :" + destVertex);
 					count++;
 				}
 				if (count < 5) {
 					existingNums.put(destVertex, VALUE);
-					logger.info("Destination vertex is " + destVertex);
+					//logger.info("Destination vertex is " + destVertex);
 					cost = new Random().nextInt(this.maxcost);
-					logger.info("Cost of the edge :" + cost);
+					//logger.info("Cost of the edge :" + cost);
 					newEdge = new Edge(i, destVertex, cost);
 					edgeList.add(newEdge);
 					destVertex = -1;
@@ -107,7 +111,7 @@ public class GraphGenerator {
 			String edgeString = returnString(edgeList);
 			strBuff.append(i + vertexToEdgeSep + edgeString);
 			strBuff.append("\n");
-			logger.info("Content of strBuffer: " + strBuff + "\n");
+			//logger.info("Content of strBuffer: " + strBuff + "\n");
 			numOutgoingEdges = -1;
 
 		}
@@ -116,11 +120,11 @@ public class GraphGenerator {
 					graphFilePath));
 
 			String output = strBuff.toString();
-			logger.info("Content in Output after toString :" + output);
+			//logger.info("Content in Output after toString :" + output);
 			writefile.write(output);
 			writefile.close();
 		} catch (IOException e) {
-			logger.info("Could not open File " + graphFilePath + "for writing");
+			//logger.info("Could not open File " + graphFilePath + "for writing");
 			e.printStackTrace();
 		}
 
@@ -151,9 +155,11 @@ public class GraphGenerator {
 
 	public static void main(String args[]) {
 
+		int numVertices=Integer.parseInt(args[0]);
+		int maxCost=Integer.parseInt(args[1]);
 		try {
 			try {
-				GraphGenerator graph = new GraphGenerator(20, 100);
+				GraphGenerator graph = new GraphGenerator(numVertices, maxCost);
 			} catch (IllegalInputException e) {
 
 				e.printStackTrace();

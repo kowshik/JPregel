@@ -13,10 +13,10 @@ import java.io.OutputStreamWriter;
  * @author Kowshik Prakasam
  *
  */
-public class VertexTest extends Vertex{
+public class PageRankVertex extends Vertex{
 	
 	
-	public VertexTest(){
+	public PageRankVertex(){
 		
 	}
 
@@ -25,19 +25,20 @@ public class VertexTest extends Vertex{
 	 */
 	@Override
 	public void compute() {
-	
-		double maxVal=this.getValue();
-		boolean newMaxVal=false;
-		for(Message m : this.getMessages()){
-			if(m.getMessageValue() > maxVal){
-				maxVal=m.getMessageValue();
-				newMaxVal=true;
+		
+		if(this.getSuperStep()>=1){
+			double sum=0;
+			for(Message m : this.getMessages()){
+				sum+=m.getMessageValue();
 			}
+			double newPageRank=0.15/this.getTotalNumVertices()+0.85*sum;
+			this.setValue(newPageRank);
 		}
-		this.setValue(maxVal);
-		if(newMaxVal || this.getSuperStep()==JPregelConstants.FIRST_SUPERSTEP){
+		
+		if(this.getSuperStep()< 30){
+			int numEdges=this.getEdges().size();
 			for(Edge e : this.getEdges()){
-				this.sendMessage(e, this.getValue());
+				this.sendMessage(e, this.getValue()/numEdges);
 			}
 		}
 	}

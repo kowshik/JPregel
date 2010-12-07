@@ -20,5 +20,5 @@ public interface WorkerManager extends java.rmi.Remote  {
 	
 	void beginSuperStep(int superStepNumber) throws RemoteException;
 	
-	
+	void writeSolutions() throws RemoteException;
 }

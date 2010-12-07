@@ -6,6 +6,7 @@ package system;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -95,10 +96,10 @@ public class Communicator implements Runnable {
 	public void run() {
 		while (true) {
 			if (this.getState() == CommunicatorState.EXECUTE) {
-				
+
 				boolean allDone = true;
-				for (int index=0;index<registeredWorkers.size();index++) {
-					Worker aWkr=registeredWorkers.get(index);
+				for (int index = 0; index < registeredWorkers.size(); index++) {
+					Worker aWkr = registeredWorkers.get(index);
 					if (aWkr.getState() != Worker.WorkerState.DONE) {
 						allDone = false;
 					}
@@ -107,8 +108,13 @@ public class Communicator implements Runnable {
 					try {
 						logger.info("Commencing communications");
 						communicate();
+						//SET communicator state to STOP below when handling exceptions
+					} catch (UnknownHostException e) {
+						logger.severe("UnknownHostException occured in communicate()");
+						e.printStackTrace();
 					} catch (RemoteException e) {
 						logger.severe("RemoteException occured in communicate()");
+						e.printStackTrace();
 					} catch (DataNotFoundException e) {
 						logger.severe("DataNotFoundException occured in communicate()");
 						e.printStackTrace();
@@ -131,7 +137,7 @@ public class Communicator implements Runnable {
 	 * 
 	 */
 	private void communicate() throws IOException, DataNotFoundException,
-			NotBoundException, RemoteException {
+			NotBoundException, RemoteException, UnknownHostException {
 
 		clearSpoolerQueues();
 		populateSpoolerQueues();
@@ -163,7 +169,7 @@ public class Communicator implements Runnable {
 
 	private void populateSpoolerQueues() throws IOException,
 			DataNotFoundException, NotBoundException, MalformedURLException,
-			RemoteException {
+			RemoteException, UnknownHostException {
 		Message msg;
 		Map<Integer, Pair<String, String>> partitionMap = this.aDataLocator
 				.readPartitionMap();
@@ -175,23 +181,38 @@ public class Communicator implements Runnable {
 			Pair<String, String> targetWkrMgrInfo = partitionMap
 					.get(targetPartition);
 			String targetWkrMgrServiceName = targetWkrMgrInfo.getFirst();
-			String targetWkrMgrHostName = targetWkrMgrInfo.getSecond();
+			String targetWkrMgrHostName = targetWkrMgrInfo.getSecond().split(
+					":")[0];
+			String targetHostPort = targetWkrMgrInfo.getSecond().split(":")[1];
 
 			MessageSpooler targetMsgSpooler = null;
 			List<Message> msgList = null;
 			if (!this.idSpoolerMap.containsKey(targetWkrMgrServiceName)) {
 				msgList = new Vector<Message>();
-				if (!isSelfLookup(targetWkrMgrServiceName)) {
+				if (isSelfLookup(targetWkrMgrServiceName)) {
+
+					logger.info("Avoiding self lookup for service : "
+							+ targetWkrMgrServiceName);
+					targetMsgSpooler = wkrMgr;
+
+				} else if (isSameHost(targetWkrMgrHostName)) {
+					logger.info("In current host : " + targetWkrMgrHostName
+							+ " looking up spooler service : " + "localhost:"
+							+ targetHostPort + "/" + targetWkrMgrServiceName);
+
+					targetMsgSpooler = (MessageSpooler) Naming.lookup("//"
+							+ "localhost:" + targetHostPort + "/"
+							+ targetWkrMgrServiceName);
+				}
+
+				else {
 					logger.info("Looking up spooler service : "
+							+ targetWkrMgrHostName + ":" + targetHostPort + "/"
 							+ targetWkrMgrServiceName);
 
 					targetMsgSpooler = (MessageSpooler) Naming.lookup("//"
-							+ targetWkrMgrHostName + "/"
+							+ targetWkrMgrHostName + ":" + targetHostPort + "/"
 							+ targetWkrMgrServiceName);
-				}else{
-					logger.info("Avoiding self lookup for service : "
-							+ targetWkrMgrServiceName);
-					targetMsgSpooler=wkrMgr;
 				}
 				Pair<MessageSpooler, List<Message>> spoolerInfo = new Pair<MessageSpooler, List<Message>>(
 						targetMsgSpooler, msgList);
@@ -200,8 +221,9 @@ public class Communicator implements Runnable {
 				logger.info("Added spooler service and queue to map : "
 						+ spoolerInfo);
 
-			}else{
-				msgList=this.idSpoolerMap.get(targetWkrMgrServiceName).getSecond();
+			} else {
+				msgList = this.idSpoolerMap.get(targetWkrMgrServiceName)
+						.getSecond();
 			}
 			msgList.add(msg);
 			logger.info("Added message to spooler queue : "
@@ -210,11 +232,23 @@ public class Communicator implements Runnable {
 	}
 
 	/**
+	 * @param targetWkrMgrHostName
+	 * @return
+	 * @throws
+	 */
+	private boolean isSameHost(String targetWkrMgrHostName)
+			throws UnknownHostException {
+		String hostName = InetAddress.getLocalHost().getHostName();
+		return targetWkrMgrHostName.equals(hostName);
+	}
+
+	/**
 	 * @return
 	 */
 	private boolean isSelfLookup(String targetServiceName) {
-		logger.info("Checking if "+wkrMgr.getId()+" == "+targetServiceName);
-		if(wkrMgr.getId().equals(targetServiceName)){
+		logger.info("Checking if " + wkrMgr.getId() + " == "
+				+ targetServiceName);
+		if (wkrMgr.getId().equals(targetServiceName)) {
 			return true;
 		}
 		return false;
@@ -228,17 +262,17 @@ public class Communicator implements Runnable {
 				.entrySet()) {
 			Pair<MessageSpooler, List<Message>> aPair = e.getValue();
 			List<Message> thisMsgQueue = aPair.getSecond();
-			thisMsgQueue.clear();			
+			thisMsgQueue.clear();
 		}
 	}
 
 	private void stopWorkers() {
-		for (int index=0;index<registeredWorkers.size();index++) {
-			Worker aWorker=registeredWorkers.get(index);
+		for (int index = 0; index < registeredWorkers.size(); index++) {
+			Worker aWorker = registeredWorkers.get(index);
 			aWorker.setState(WorkerState.STOP);
 			logger.info("Stopped worker : " + aWorker.getId());
 		}
-		
+
 	}
 
 	public void registerWorker(Worker aWorker) {

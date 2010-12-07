@@ -3,12 +3,18 @@
  */
 package system;
 
+import java.io.Serializable;
+
 /**
  * @author Manasa Chandrasekhar
  * @author Kowshik Prakasam
  *
  */
-public class Message {
+public class Message implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3147922297024936878L;
 	public int sourceVertexID;
 	
 	public int getSourceVertexID() {
@@ -20,10 +26,10 @@ public class Message {
 		return destVertexID;
 	}
 	
-	public int msgValue;
+	public double msgValue;
 	
 	
-	public int getMessageValue() {
+	public double getMessageValue() {
 		return msgValue;
 	}
 
@@ -32,7 +38,7 @@ public class Message {
 		return this.superStep;
 	}
 	
-	public Message(int sourceVertexID, int destVertexID, int msgValue, int superStep){
+	public Message(int sourceVertexID, int destVertexID, double msgValue, int superStep){
 	
 		this.sourceVertexID=sourceVertexID;
 		this.destVertexID=destVertexID;		

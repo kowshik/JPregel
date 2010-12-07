@@ -40,17 +40,18 @@ public class Worker implements Runnable {
 		EXECUTE, DONE, STOP
 	};
 
-	private WorkerManager mgr;
+	private WorkerManagerImpl mgr;
 	private String vertexClassName;
 	private WorkerState state;
 	private Communicator aCommunicator;
 	private int numVertices;
 	
+
 	public int getNumVertices() {
 		return numVertices;
 	}
 
-	private Worker(WorkerManager mgr, String vertexClassName,
+	private Worker(WorkerManagerImpl mgr, String vertexClassName,
 			int partitionSize, Communicator aCommunicator, int numVertices) throws IOException {
 		this.state = WorkerState.STOP;
 		this.setSuperStep(JPregelConstants.DEFAULT_SUPERSTEP);
@@ -85,24 +86,23 @@ public class Worker implements Runnable {
 	}
 
 	public String getId() {
-		// TODO Auto-generated method stub
 		return id;
 	}
 
 	public Worker(List<Integer> partitionNumers, int partitionSize,
-			WorkerManager mgr, String vertexClassName,
+			WorkerManagerImpl mgr, String vertexClassName,
 			Communicator aCommunicator, int numVertices) throws DataNotFoundException,
 			IOException, IllegalInputException, InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
 		this(mgr, vertexClassName, partitionSize, aCommunicator, numVertices);
 		logger.info("Worker : " + this.getId() + " received partitions : "
 				+ partitionNumers);
-		DataLocator theDataLocator = DataLocator.getDataLocator(partitionSize);
+		DataLocator aDataLocator = DataLocator.getDataLocator(partitionSize);
 		for (Integer partitionNumber : partitionNumers) {
-			String partitionFile = theDataLocator
+			String partitionFile = aDataLocator
 					.getPartitionFile(partitionNumber);
 			GraphPartition aGraphPartition = new GraphPartition(partitionFile,
-					this.vertexClassName, this);
+					this.vertexClassName, this, aDataLocator);
 			logger.info("Worker : " + this.getId()
 					+ " initialized partition : " + partitionFile);
 			this.listOfPartitions.add(aGraphPartition);
@@ -187,5 +187,12 @@ public class Worker implements Runnable {
 
 		return idVertexMap;
 
+	}
+	
+	
+	public void writeSolutions() throws IOException{
+		for(GraphPartition gp : this.listOfPartitions){
+			gp.writeSolutions();
+		}
 	}
 }
