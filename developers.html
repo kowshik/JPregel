@@ -92,8 +92,6 @@ In this problem, the value of a vertex at any point of time represents the cost 
 The vertex votes to a halt after the computation and is activated by the JPregel system in the next superstep only if it has recieved any messages in the previous superstep.<br><br>
 
 <pre style='color:#d1d1d1;background:#000000;'>
-<span style='color:#e66170; font-weight:bold; '>package</span><span style='color:#008073; '> examples</span><span style='color:#b060b0; '>;</span>
-
 <span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> graphs</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>Edge</span><span style='color:#b060b0; '>;</span>
 
 <span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> java</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>io</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>BufferedWriter</span><span style='color:#b060b0; '>;</span>
@@ -181,8 +179,6 @@ At any point of time, the value of a vertex represents the tentative page rank o
 From SuperStep 1 to 30, each vertex sums up the values arriving on all its messages and sets its tentative page rank to <b>0.15/num_of_vertices + 0.85 * sum_of_PRs</b>. After 30 Supersteps the vertices vote to halt. The number 30 is an arbitrary value assumed to provide a simplified implementation of PageRank. In reality, PageRank algorithm will run until convergence is achieved.<br><br>
 
 <pre style='color:#d1d1d1;background:#000000;'>
-<span style='color:#e66170; font-weight:bold; '>package</span><span style='color:#008073; '> examples</span><span style='color:#b060b0; '>;</span>
-
 <span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> graphs</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>Edge</span><span style='color:#b060b0; '>;</span>
 
 <span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> java</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>io</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>BufferedWriter</span><span style='color:#b060b0; '>;</span>
