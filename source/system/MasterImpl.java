@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import system.MasterImpl.FaultDetector;
+
 /**
  * @author Manasa Chandrasekhar
  * @author Kowshik Prakasam
@@ -39,7 +41,8 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 
 	private static final long serialVersionUID = -7962409918852099855L;
 
-	private Thread t;
+	private Thread superstepExecutorThread;
+	private Thread faultDetectorThread;
 	public Map<String, WorkerManager> idManagerMap;
 	private Map<WorkerManager, WORKER_MANAGER_STATE> activeWorkerMgrs;
 	private Logger logger;
@@ -49,6 +52,10 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 	private boolean allDone;
 
 	private int activeMgrs;
+
+	private int numMachines;
+
+	private FaultDetector aFaultDetector;
 
 	public String getVertexClassName() {
 		return vertexClassName;
@@ -64,15 +71,49 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 	private static final String LOG_FILE_SUFFIX = ".log";
 	private static final int PORT_NUMBER = 3672;
 
-	public MasterImpl(String vertexClassName) throws IOException {
+	
+	public class FaultDetector implements Runnable {
+		public FaultDetector(){
+			
+		}
+		@Override
+		public void run(){
+			
+		}
+		
+		public String getID() {
+			return "FaultDetector";
+		}
+	}
+	public MasterImpl(String vertexClassName, int numMachines) throws IOException {
 
 		this.setId("Master");
 		initLogger();
+		this.setNumMachines(numMachines);
 		this.setSuperStep(JPregelConstants.FIRST_SUPERSTEP);
 		this.setVertexClassName(vertexClassName);
 		this.idManagerMap = new HashMap<String, WorkerManager>();
 		this.activeWorkerMgrs = new HashMap<WorkerManager, WORKER_MANAGER_STATE>();
-		t = new Thread(this, getId());
+		this.superstepExecutorThread = new Thread(this, getId());
+		this.aFaultDetector=new FaultDetector();
+		this.faultDetectorThread=new Thread(this.aFaultDetector,this.aFaultDetector.getID());
+		
+	}
+
+	/**
+	 * @param numMachines
+	 */
+	private void setNumMachines(int numMachines) {
+		this.numMachines=numMachines;
+		
+	}
+	
+	/**
+	 * @param numMachines
+	 */
+	private int getNumMachines() {
+		return this.numMachines;
+		
 	}
 
 	public void setId(String id) {
@@ -104,7 +145,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		logger.info("registered state of worker : " + id + " to "
 				+ WORKER_MANAGER_STATE.ACTIVE);
 
-		if (idManagerMap.size() == 16) {
+		if (idManagerMap.size() == this.numMachines) {
 			executeTask();
 		}
 
@@ -112,6 +153,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 
 	public static void main(String args[]) throws IllegalClassException {
 		String vertexClassName = args[0];
+		int numMachines= Integer.parseInt(args[1]);
 		try {
 			Class c = Class.forName(vertexClassName);
 			if (!c.getSuperclass().equals(Vertex.class)) {
@@ -127,7 +169,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		}
 		try {
 
-			MasterToClient master = new MasterImpl(vertexClassName);
+			MasterToClient master = new MasterImpl(vertexClassName,numMachines);
 			Registry registry = LocateRegistry.createRegistry(PORT_NUMBER);
 			registry.rebind(MasterToClient.SERVICE_NAME, master);
 			System.err.println("Master instance bound");
@@ -149,45 +191,46 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 
 	public void executeTask() {
 
-		t.start();
+		superstepExecutorThread.start();
+		faultDetectorThread.start();
 	}
 
 	public void run() {
 		try {
-			
+
 			initializeWorkerManagers();
-			while (findActiveManagers(this.getSuperStep())>0) {
+			while (findActiveManagers(this.getSuperStep()) > 0) {
 				try {
 					Thread.sleep(10);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 				this.setAllDone(false);
+
 				this.activeMgrs = this.idManagerMap.size();
 				for (Map.Entry<String, WorkerManager> e : this.idManagerMap
 						.entrySet()) {
 					String aWkrMgrId = e.getKey();
 					WorkerManager aWkrMgr = e.getValue();
 
-					logger.info("Commencing superstep : "+this.getSuperStep()+" in worker manager : "
-							+ aWkrMgrId);
-					aWkrMgr.beginSuperStep(this.getSuperStep());
+					logger.info("Commencing superstep : " + this.getSuperStep()
+							+ " in worker manager : " + aWkrMgrId);
+					aWkrMgr.beginSuperStep(this.getSuperStep(),
+							this.isCheckPoint());
 				}
 				logger.info("Waiting for worker managers to complete execution");
 				while (!allDone()) {
-					
+
 				}
 				logger.info("Superstep over : " + this.getSuperStep());
 				this.setSuperStep(this.getSuperStep() + 1);
 			}
 			logger.info("-----------------------------------------------------");
 			logger.info("Writing Solutions");
-			//Writing solutions
+			// Writing solutions
 			writeSolutions();
-			
-			
-		} catch (IOException e)
-		{
+
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalInputException e) {
@@ -210,36 +253,44 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 	}
 
 	/**
-	 * @throws RemoteException 
+	 * @return
+	 */
+	private boolean isCheckPoint() {
+		if (this.getSuperStep() % JPregelConstants.CHECKPOINT_INTERVAL == 0) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @throws RemoteException
 	 * 
 	 */
 	private void writeSolutions() throws RemoteException {
-		for (Map.Entry<String, WorkerManager> e : this.idManagerMap
-				.entrySet()) {
-			WorkerManager aWkrMgr=e.getValue();
+		for (Map.Entry<String, WorkerManager> e : this.idManagerMap.entrySet()) {
+			WorkerManager aWkrMgr = e.getValue();
 			aWkrMgr.writeSolutions();
 		}
-		
+
 	}
 
 	/**
 	 * @return
-	 * @throws RemoteException 
+	 * @throws RemoteException
 	 */
 	private int findActiveManagers(int superStep) throws RemoteException {
-		if(superStep == JPregelConstants.FIRST_SUPERSTEP){
+		if (superStep == JPregelConstants.FIRST_SUPERSTEP) {
 			return this.idManagerMap.size();
 		}
-		int activeManagers=0;
-		for (Map.Entry<String, WorkerManager> e : this.idManagerMap
-				.entrySet()) {
-			MessageSpooler aSpooler=(MessageSpooler)e.getValue();
-			if(aSpooler.getQueueSize()>0){
+		int activeManagers = 0;
+		for (Map.Entry<String, WorkerManager> e : this.idManagerMap.entrySet()) {
+			MessageSpooler aSpooler = (MessageSpooler) e.getValue();
+			if (aSpooler.getQueueSize() > 0) {
 				activeManagers++;
 			}
 		}
 		return activeManagers;
-		
+
 	}
 
 	/**
@@ -330,6 +381,11 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 			if (this.activeMgrs == 0) {
 				logger.info("All worker managers reported completion of superstep : "
 						+ this.getSuperStep());
+				if (this.isCheckPoint()) {
+					logger.info("#############################");
+					logger.info("Checkpointed data at superstep : "+this.getSuperStep());
+					logger.info("#############################");
+				}
 				setAllDone(true);
 			}
 		}

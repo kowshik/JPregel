@@ -6,8 +6,6 @@
         Builds, testes and runs JPregel.
     </description>
     
-    <!-- client's vertex class -->
-    <!-- property name="vertex_class" value="system.PageRankVertex"/ -->
     
     <!-- codebase properties -->
     
@@ -15,7 +13,10 @@
     <property name="src" location="source"/>
     <property name="build" location="build/classes"/>
     <property name="dist" location="dist"/>
-    <property name="port" value="3672"/>
+	<property name="logs" location="logs"/>
+    <property name="checkpoints" location="checkpoints"/>
+	<property name="solutions" location="solutions"/>
+	<property name="port" value="3672"/>
     
     <!-- host names -->
     <property name="host1" value="dudley.cs.ucsb.edu"/>
@@ -41,10 +42,30 @@
         <!-- Delete the ${build} and ${dist} directory trees -->
         <delete dir="${build}"/>
         <delete dir="${dist}"/>
+		<delete dir="${logs}"/>
     </target>
     
     
-    <target name="compile" description="compiles the source">
+    <target name="compile" description="compiles the source and cleans the logs">
+    	
+        <!-- Clears logs -->
+    	<delete dir="${logs}"/>
+		
+		<!-- Clears solutions -->
+    	<delete dir="${solutions}"/>
+		
+		<!-- Clears checkpoints -->
+    	<delete dir="${checkpoints}"/>
+		
+		<!-- Creates logs -->
+		<mkdir dir="${logs}"/>
+		
+		<!-- Creates solutions -->
+		<mkdir dir="${solutions}"/>
+		
+		<!-- Creates checkpoints -->
+		<mkdir dir="${checkpoints}"/>
+		
         <!-- Create the build directory structure used by compile -->
         <mkdir dir="${build}"/>
         
@@ -65,9 +86,7 @@
         <mkdir dir="${dist}"/>
         
         <!-- Make computer.jar file -->
-        <jar jarfile="${dist}/jpregel.jar" basedir="${build}" includes="api/** system/** client/** tasks/**"/>
-        
-        
+        <jar jarfile="${dist}/jpregel.jar" basedir="${build}" includes="api/** system/** client/** tasks/**"/>        
     </target>
     
     
@@ -189,6 +208,7 @@
         <java classname="system.MasterImpl" fork="true">
             <jvmarg value="-Djava.security.policy=policy/policy"/>
             <arg value="${vertex_class}"/>
+			<arg value="${num_machines}"/>
             <classpath>
                 <pathelement location="${dist}/jpregel.jar"/>
             </classpath>
@@ -200,7 +220,7 @@
     <target name="runRemoteMaster" depends="build_jpregel" description="starts master remotely  through ssh">
         
         <!-- run master in remote hosts -->
-        <sshexec host="${master}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runMaster -Dusername=${username} -Dvertex_class=${vertex_class}" passphrase=""/>
+        <sshexec host="${master}" username="${username}" keyfile="/cs/student/${username}/.ssh/headless_rsa" trust="true" command="cd /cs/student/${username}/${jpregel_folder}/; ant runMaster -Dusername=${username} -Dvertex_class=${vertex_class} -Dnum_machines=${num_machines}" passphrase=""/>
         
         
     </target>
@@ -210,8 +230,8 @@
         <!-- run remote master -->
         <java classname="system.MasterImpl" fork="true">
             <jvmarg value="-Djava.security.policy=policy/policy"/>
-            <jvmarg value="-Dvertex_class=${vertex_class}"/>
             <arg value="${vertex_class}"/>
+			<arg value="${num_machines}"/>
             <classpath>
                 <pathelement location="${dist}/jpregel.jar"/>
             </classpath>

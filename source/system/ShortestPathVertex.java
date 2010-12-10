@@ -33,6 +33,7 @@ public class ShortestPathVertex extends Vertex{
 	 */
 	@Override
 	public void compute() {
+	
 		double minDist= isSourceVertex() ? 0 : JPregelConstants.INFINITY;
 		int newPrevVertexID=-1;
 		for(Message aMsg : this.getMessages()){

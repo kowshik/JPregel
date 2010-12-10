@@ -3,28 +3,45 @@ package system;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-public abstract class Vertex {
+public abstract class Vertex implements Serializable {
 
+	//transient
+	//protected transient Logger logger;
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7498169364791651592L;
 	private int vertexID;
 	public static final String vertexToEdgesSep = "->";
 	public static final String edgesSep = ",";
 	public List<Message> msgs;
-	protected Logger logger;
+	
+	
 	private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR
 			+ "vertex_";
 	private static final String LOG_FILE_SUFFIX = ".log";
 
+
+	private List<Edge> outgoingEdges;
+	private GraphPartition gPartition;
+	private String solutionFile;
+	private double value;
+	
+	
+	/*
 	protected void initLogger() throws IOException {
 		this.logger = JPregelLogger.getLogger(this.getVertexID()+"", LOG_FILE_PREFIX
 				+ this.getVertexID() + LOG_FILE_SUFFIX);
 
-	}
+	}*/
 
 	public int getVertexID() {
 		return vertexID;
@@ -34,7 +51,7 @@ public abstract class Vertex {
 		this.vertexID = vertexID;
 	}
 
-	private double value;
+
 
 	public double getValue() {
 		return value;
@@ -43,10 +60,6 @@ public abstract class Vertex {
 	public void setValue(double value) {
 		this.value = value;
 	}
-
-	private List<Edge> outgoingEdges;
-	private GraphPartition gPartition;
-	private String solutionFile;
 
 	public String getSolutionFile() {
 		return solutionFile;
@@ -194,7 +207,7 @@ public abstract class Vertex {
 	 * 
 	 */
 	public void initCompute() {
-		compute();
+		compute();		
 		this.msgs.clear();
 	}
 
@@ -214,5 +227,13 @@ public abstract class Vertex {
 	 * @throws IOException
 	 */
 	public abstract void writeSolution(OutputStream anOutputStream) throws IOException;
+
+	/**
+	 * 
+	 */
+	public void clearMessageQueue() {
+		this.msgs.clear();
+		
+	}
 	
 }

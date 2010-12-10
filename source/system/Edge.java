@@ -3,8 +3,14 @@
  */
 package system;
 
+import java.io.Serializable;
+
 //Abstracts an edge in a graph
-public class Edge {
+public class Edge implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6528631031420426200L;
 	public int sourceVertexID;
 	public static final String vertexToCostSep = ":";
 

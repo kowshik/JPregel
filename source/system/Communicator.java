@@ -124,6 +124,8 @@ public class Communicator implements Runnable {
 					} catch (NotBoundException e) {
 						logger.severe("NotBoundException occured in communicate()");
 						e.printStackTrace();
+					}finally{
+						this.setState(CommunicatorState.STOP);
 					}
 				}
 			}

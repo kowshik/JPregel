@@ -18,7 +18,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -31,6 +30,10 @@ import java.util.logging.Logger;
 public class WorkerManagerImpl extends UnicastRemoteObject implements
 		WorkerManager, MessageSpooler {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2375569067650804665L;
 	private static int PORT_NUMBER;
 	static {
 		PORT_NUMBER = new Random().nextInt(3000) + 2000;
@@ -49,6 +52,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	private List<Message> incomingMsgs;
 	private Communicator aCommunicator;
 	private int superStep;
+	private boolean isCheckPoint;
 
 	public Communicator getCommunicator() {
 		return aCommunicator;
@@ -103,7 +107,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		String masterServer = args[0];
 		String vertexClassName = args[1];
 		try {
-			Class c = Class.forName(vertexClassName);
+			Class<?> c = Class.forName(vertexClassName);
 			if (!c.getSuperclass().equals(Vertex.class)) {
 				throw new IllegalClassException(vertexClassName);
 			}
@@ -178,7 +182,6 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		}
 		this.getCommunicator().setDataLocator(aDataLocator);
 
-		int workerIndex = 0;
 		int wkrPartitionCount = partitionNumbers.size() / numWorkers;
 		if (wkrPartitionCount == 0 && numWorkers != 0) {
 			wkrPartitionCount = partitionNumbers.size();
@@ -247,14 +250,22 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	 * @see system.WorkerManager#executeSuperStep()
 	 */
 	@Override
-	public void beginSuperStep(int superStepNumber) throws RemoteException {
-		this.superStep=superStepNumber;
+	public void beginSuperStep(int superStepNumber, boolean isCheckPoint)
+			throws RemoteException {
+		this.superStep = superStepNumber;
+		this.isCheckPoint = isCheckPoint;
+		
+		
 		logger.info("Beginning superstep : " + superStepNumber);
 		// Distribute messages from last superstep
 		try {
-			if (distributeMessages()
+			boolean msgDistributed=distributeMessages();
+			if (this.isCheckPoint || superStep == JPregelConstants.FIRST_SUPERSTEP) {
+				checkpointData();
+			}
+			if (msgDistributed
 					|| (superStepNumber == JPregelConstants.FIRST_SUPERSTEP)) {
-				
+
 				// start communicator
 				logger.info("Starting communicator");
 				aCommunicator.setState(Communicator.CommunicatorState.EXECUTE);
@@ -301,11 +312,43 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 
 	}
 
-	
-
 	public void endSuperStep() throws RemoteException {
 		logger.info("Ending superstep");
 		master.endSuperStep(this.getId());
+	}
+
+	private void checkpointData() throws RemoteException {
+
+		try {
+			this.saveData();
+		} catch (IOException e) {
+			String msg = e.getMessage();
+			logger.severe(msg);
+			e.printStackTrace();
+			throw new RemoteException(msg, e);
+		} catch (DataNotFoundException e) {
+			String msg = e.getMessage();
+			logger.severe(msg);
+			e.printStackTrace();
+			throw new RemoteException(msg, e);
+		}
+
+	}
+
+
+	/**
+	 * @throws DataNotFoundException
+	 * @throws IOException
+	 * 
+	 */
+	private void saveData() throws IOException, DataNotFoundException {
+		for (int index = 0; index < this.workers.size(); index++) {
+			Worker aWorker = this.workers.get(index);
+			aWorker.setSuperStep(this.superStep);
+			aWorker.saveData();
+			logger.info("Checkpointed data for worker : " + aWorker.getId());
+		}
+
 	}
 
 	/*
@@ -315,7 +358,8 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	 */
 	@Override
 	public synchronized void queueMessage(Message msg) throws RemoteException {
-		logger.info("In superstep : "+this.superStep+", queued next superstep message : " + msg);
+		logger.info("In superstep : " + this.superStep
+				+ ", queued next superstep message : " + msg);
 		this.incomingMsgs.add(msg);
 
 	}
@@ -347,7 +391,9 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see system.WorkerManager#writeSolutions()
 	 */
 	@Override
@@ -363,6 +409,15 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 				throw new RemoteException(msg, e);
 			}
 		}
+
+	}
+
+	/* (non-Javadoc)
+	 * @see system.WorkerManager#isAlive()
+	 */
+	@Override
+	public void isAlive() throws RemoteException {
+		//does nothing, dummy method to check if host is alive
 		
 	}
 

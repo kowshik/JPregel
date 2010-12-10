@@ -101,7 +101,7 @@ public class Worker implements Runnable {
 		for (Integer partitionNumber : partitionNumers) {
 			String partitionFile = aDataLocator
 					.getPartitionFile(partitionNumber);
-			GraphPartition aGraphPartition = new GraphPartition(partitionFile,
+			GraphPartition aGraphPartition = new GraphPartition(partitionNumber,partitionFile,
 					this.vertexClassName, this, aDataLocator);
 			logger.info("Worker : " + this.getId()
 					+ " initialized partition : " + partitionFile);
@@ -194,5 +194,27 @@ public class Worker implements Runnable {
 		for(GraphPartition gp : this.listOfPartitions){
 			gp.writeSolutions();
 		}
+	}
+
+	/**
+	 * @throws DataNotFoundException 
+	 * @throws IOException 
+	 * 
+	 */
+	public void saveData() throws IOException, DataNotFoundException {
+		for(GraphPartition gp : this.listOfPartitions){
+			gp.saveData();
+		}
+		
+	}
+
+	/**
+	 * 
+	 */
+	public void clearVertexQueues() {
+		for(GraphPartition gp : this.listOfPartitions){
+			gp.clearVertexQueues();
+		}
+		
 	}
 }

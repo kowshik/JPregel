@@ -16,6 +16,11 @@ import java.io.OutputStreamWriter;
 public class PageRankVertex extends Vertex{
 	
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4444855908940126630L;
+
 	public PageRankVertex(){
 		
 	}

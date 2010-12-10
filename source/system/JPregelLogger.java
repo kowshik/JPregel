@@ -41,7 +41,7 @@ public class JPregelLogger {
 		aLogger.addHandler(logHandle);
 		aLogger.info("init "+classId+" Logger successful");
 		if(!classId.equals("Master")){
-			aLogger.setLevel(Level.SEVERE);
+			//aLogger.setLevel(Level.SEVERE);
 			
 		}
 		return aLogger;

@@ -101,9 +101,10 @@ public class GraphPartitioner {
 			}
 
 			if (listOfVertices.size() > 0) {
+				int partitionID=listOfPartitions.size();
 				String newPartitionFile = DataLocator.getDataLocator(partitionSize)
-						.getPartitionFile(listOfPartitions.size());
-				GraphPartition newPartition = new GraphPartition(listOfVertices);
+						.getPartitionFile(partitionID);
+				GraphPartition newPartition = new GraphPartition(partitionID,listOfVertices);
 				logger.info("Dumped : " + listOfVertices.size() + " to file : "
 						+ newPartitionFile);
 				newPartition.writeToFile(newPartitionFile);

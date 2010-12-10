@@ -2,10 +2,13 @@ package system;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Vector;
 
@@ -13,13 +16,24 @@ import java.util.Vector;
  * Represents the physical partition of a graph
  * 
  */
-public class GraphPartition {
+public class GraphPartition implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7131394295735085039L;
+	// transient
+	private transient Worker aWorker;
+	private transient DataLocator aDataLocator;
 
 	private List<Vertex> listOfVertices;
 	private String partitionFile;
 	private String vertexClassName;
-	private Worker aWorker;
-	private DataLocator aDataLocator;
+	private int partitionID;
+
+	public int getPartitionID() {
+		return this.partitionID;
+	}
 
 	// Converts the partition into a String representation
 	// Each line in the string representation is obtained
@@ -34,9 +48,10 @@ public class GraphPartition {
 
 	}
 
-	public GraphPartition(List<Vertex> listOfVertices) {
+	public GraphPartition(int partitionID, List<Vertex> listOfVertices) {
+		this.partitionID = partitionID;
 		this.listOfVertices = listOfVertices;
-		for(Vertex v : listOfVertices){
+		for (Vertex v : listOfVertices) {
 			v.setGraphPartition(this);
 		}
 
@@ -48,12 +63,14 @@ public class GraphPartition {
 		return this.partitionFile;
 	}
 
-	public GraphPartition(String inputFile, String vertexClassName, Worker aWorker, DataLocator aDataLocator)
+	public GraphPartition(int partitionID, String inputFile,
+			String vertexClassName, Worker aWorker, DataLocator aDataLocator)
 			throws IOException, IllegalInputException, InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
 		this(inputFile, vertexClassName);
-		this.aDataLocator=aDataLocator;
-		this.aWorker=aWorker;
+		this.aDataLocator = aDataLocator;
+		this.aWorker = aWorker;
+		this.partitionID = partitionID;
 		this.listOfVertices = readFromFile(inputFile);
 	}
 
@@ -62,8 +79,7 @@ public class GraphPartition {
 			IllegalAccessException, ClassNotFoundException {
 		this.vertexClassName = vertexClassName;
 		this.partitionFile = inputFile;
-		
-		
+
 	}
 
 	// Reads the physical partition from file and caches it.
@@ -78,9 +94,10 @@ public class GraphPartition {
 		List<Vertex> listOfVertices = new Vector<Vertex>();
 		while ((line = buffReader.readLine()) != null) {
 			Vertex aNewVertex = (Vertex) (Class.forName(vertexClassName)
-					.newInstance());			
-			aNewVertex.initialize(line,this);
-			String vtxSolnFile=aDataLocator.getVertexFile(aNewVertex.getVertexID());
+					.newInstance());
+			aNewVertex.initialize(line, this);
+			String vtxSolnFile = aDataLocator.getVertexFile(aNewVertex
+					.getVertexID());
 			aNewVertex.setSolutionFile(vtxSolnFile);
 			listOfVertices.add(aNewVertex);
 		}
@@ -112,23 +129,65 @@ public class GraphPartition {
 	public List<Vertex> getVertices() {
 		return this.listOfVertices;
 	}
-	
-	public void send(Message msg){
+
+	public void send(Message msg) {
 		aWorker.send(msg);
 	}
-	
-	public int getSuperStep(){
+
+	public int getSuperStep() {
 		return aWorker.getSuperStep();
 	}
-	
-	public int getTotalNumVertices(){
+
+	public int getTotalNumVertices() {
 		return aWorker.getNumVertices();
 	}
-	
-	
-	public void writeSolutions() throws IOException{
-		for(Vertex v : getVertices()){
+
+	public void writeSolutions() throws IOException {
+		for (Vertex v : getVertices()) {
 			v.writeSolution();
 		}
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws DataNotFoundException
+	 * 
+	 */
+	public void saveData() throws IOException, DataNotFoundException {
+
+		String chkPointFile = aDataLocator.getCheckpointFile(getSuperStep(),
+				getPartitionID());
+		FileOutputStream fos = null;
+		ObjectOutputStream out = null;
+
+		fos = new FileOutputStream(chkPointFile);
+		out = new ObjectOutputStream(fos);
+		out.writeObject(this);
+		fos.close();
+		out.close();
+		
+		String chkPointFlag=aDataLocator.getCheckpointFlag(getSuperStep(),
+				getPartitionID());
+		
+		File chkPointFlagFile=new File(chkPointFlag);
+		if(chkPointFlagFile.exists()){
+			chkPointFlagFile.delete();
+		}
+		if(!chkPointFlagFile.createNewFile()){
+			String msg="Unable to create location : "
+				+ chkPointFlagFile.getAbsolutePath();
+			throw new DataNotFoundException(msg);
+		}
+	}
+
+	/**
+	 * 
+	 */
+	public void clearVertexQueues() {
+		for (int index=0;index<listOfVertices.size();index++) {
+			Vertex v =listOfVertices.get(index);
+			v.clearMessageQueue();
+		}
+		
 	}
 }
