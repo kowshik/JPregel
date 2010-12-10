@@ -282,6 +282,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		} catch (ClassNotFoundException e) {
 			System.err.println("Client vertex class not found !");
 			e.printStackTrace();
+			return;
 		}
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
