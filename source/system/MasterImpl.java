@@ -3,8 +3,12 @@
  */
 package system;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
+import exceptions.DataNotFoundException;
+import exceptions.IllegalClassException;
+import exceptions.IllegalInputException;
+import exceptions.NoResourcesException;
+import graphs.GraphPartitioner;
+
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -16,7 +20,10 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import system.MasterImpl.FaultDetector;
+import utility.JPregelLogger;
+import utility.Pair;
+
+import api.Vertex;
 
 /**
  * @author Manasa Chandrasekhar
@@ -24,7 +31,7 @@ import system.MasterImpl.FaultDetector;
  * 
  */
 public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
-		MasterToClient, Runnable {
+		 Runnable {
 
 	/**
 	 * 
@@ -41,21 +48,35 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 
 	private static final long serialVersionUID = -7962409918852099855L;
 
+	private GraphPartitioner gp;
 	private Thread superstepExecutorThread;
 	private Thread faultDetectorThread;
 	public Map<String, WorkerManager> idManagerMap;
-	private Map<WorkerManager, WORKER_MANAGER_STATE> activeWorkerMgrs;
 	private Logger logger;
 	private String id;
 	private String vertexClassName;
-
+	private List<String> returnedManagers;
 	private boolean allDone;
 
-	private int activeMgrs;
+	private int participatingMgrs;
+
+	public synchronized int getParticipatingMgrs() {
+		return participatingMgrs;
+	}
+
+	public synchronized void setParticipatingMgrs(int participatingMgrs) {
+		this.participatingMgrs = participatingMgrs;
+	}
 
 	private int numMachines;
 
 	private FaultDetector aFaultDetector;
+
+	private boolean isActive;
+
+	private boolean isWkrMgrsInitialized;
+
+	private int lastCheckPoint;
 
 	public String getVertexClassName() {
 		return vertexClassName;
@@ -71,50 +92,146 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 	private static final String LOG_FILE_SUFFIX = ".log";
 	private static final int PORT_NUMBER = 3672;
 
-	
 	public class FaultDetector implements Runnable {
-		public FaultDetector(){
-			
+
+		private Logger logger;
+		private static final String LOG_FILE_PREFIX = JPregelConstants.LOG_DIR
+				+ "faultdetector";
+		private static final String LOG_FILE_SUFFIX = ".log";
+
+		private void initLogger() throws IOException {
+			this.logger = JPregelLogger.getLogger(this.getID(), LOG_FILE_PREFIX
+					+ LOG_FILE_SUFFIX);
 		}
+
+		public FaultDetector() throws IOException {
+			initLogger();
+		}
+
 		@Override
-		public void run(){
-			
+		public void run() {
+			while (true) {
+				WorkerManager aWkrMgr = null;
+				String wkrMgrID = null;
+				try {
+					for (Map.Entry<String, WorkerManager> e : idManagerMap
+							.entrySet()) {
+						wkrMgrID = e.getKey();
+						aWkrMgr = e.getValue();
+						aWkrMgr.isAlive();
+					}
+				} catch (RemoteException e) {
+					this.logger
+							.severe("Worker manager : " + wkrMgrID + " died");
+
+					// deactivate master
+					deactivate();
+
+					synchronized (idManagerMap) {
+						idManagerMap.remove(wkrMgrID);
+					}
+
+					// check if this fellow has returned already. decrement
+					// counter otherwise.
+					if (!returnedManagers.contains(wkrMgrID)) {
+						setParticipatingMgrs(getParticipatingMgrs() - 1);
+						this.logger
+								.info(wkrMgrID
+										+ " didn't report completion earlier .. so decrementing participatingMgrs to "
+										+ participatingMgrs);
+						if (getParticipatingMgrs() == 0) {
+							allDone = true;
+						}
+					}
+					// for all worker managers, other than the failed
+					// manager,
+					// stop the superstep immediately.
+					stopSuperStep();
+
+					// for all worker managers, other than the failed
+					// manager,
+					// restore state.
+					try {
+						restoreState();
+					} catch (IOException e1) {
+
+						e1.printStackTrace();
+					} catch (IllegalInputException e1) {
+
+						e1.printStackTrace();
+					} catch (DataNotFoundException e1) {
+
+						e1.printStackTrace();
+					} catch (InstantiationException e1) {
+
+						e1.printStackTrace();
+					} catch (IllegalAccessException e1) {
+
+						e1.printStackTrace();
+					} catch (ClassNotFoundException e1) {
+
+						e1.printStackTrace();
+					} catch (NoResourcesException e1) {
+
+						e1.printStackTrace();
+					}
+					
+					//activating master again
+					setSuperStep(getLastCheckPoint());
+					setWkrMgrsInitialized(true);
+					activate();
+
+				}
+				
+				
+			}
 		}
-		
+
 		public String getID() {
 			return "FaultDetector";
 		}
 	}
-	public MasterImpl(String vertexClassName, int numMachines) throws IOException {
+
+	/**
+	 * @return
+	 */
+	private int getLastCheckPoint() {
+		return this.lastCheckPoint;
+	}
+
+	/**
+	 * @return
+	 */
+	private void setLastCheckPoint(int checkPoint) {
+		this.lastCheckPoint = checkPoint;
+	}
+
+	public MasterImpl(String vertexClassName, int numMachines)
+			throws IOException {
 
 		this.setId("Master");
 		initLogger();
+		this.lastCheckPoint = JPregelConstants.FIRST_SUPERSTEP;
 		this.setNumMachines(numMachines);
 		this.setSuperStep(JPregelConstants.FIRST_SUPERSTEP);
 		this.setVertexClassName(vertexClassName);
+		this.returnedManagers = new Vector<String>();
 		this.idManagerMap = new HashMap<String, WorkerManager>();
-		this.activeWorkerMgrs = new HashMap<WorkerManager, WORKER_MANAGER_STATE>();
 		this.superstepExecutorThread = new Thread(this, getId());
-		this.aFaultDetector=new FaultDetector();
-		this.faultDetectorThread=new Thread(this.aFaultDetector,this.aFaultDetector.getID());
-		
+		this.aFaultDetector = new FaultDetector();
+		this.faultDetectorThread = new Thread(this.aFaultDetector,
+				this.aFaultDetector.getID());
+
 	}
 
 	/**
 	 * @param numMachines
 	 */
 	private void setNumMachines(int numMachines) {
-		this.numMachines=numMachines;
-		
+		this.numMachines = numMachines;
+
 	}
-	
-	/**
-	 * @param numMachines
-	 */
-	private int getNumMachines() {
-		return this.numMachines;
-		
-	}
+
 
 	public void setId(String id) {
 		this.id = id;
@@ -141,21 +258,23 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		this.idManagerMap.put(id, aWorkerManager);
 		logger.info("registered worker manager : " + id);
 		logger.info("size of map : " + idManagerMap.size());
-		this.activeWorkerMgrs.put(aWorkerManager, WORKER_MANAGER_STATE.ACTIVE);
-		logger.info("registered state of worker : " + id + " to "
-				+ WORKER_MANAGER_STATE.ACTIVE);
 
 		if (idManagerMap.size() == this.numMachines) {
-			executeTask();
+			try {
+				executeTask();
+			} catch (IOException e) {
+				logger.severe(e.toString());
+				throw new RemoteException(e.toString());
+			}
 		}
 
 	}
 
 	public static void main(String args[]) throws IllegalClassException {
 		String vertexClassName = args[0];
-		int numMachines= Integer.parseInt(args[1]);
+		int numMachines = Integer.parseInt(args[1]);
 		try {
-			Class c = Class.forName(vertexClassName);
+			Class<?> c = Class.forName(vertexClassName);
 			if (!c.getSuperclass().equals(Vertex.class)) {
 				throw new IllegalClassException(vertexClassName);
 			}
@@ -169,9 +288,9 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		}
 		try {
 
-			MasterToClient master = new MasterImpl(vertexClassName,numMachines);
+			MasterImpl master = new MasterImpl(vertexClassName, numMachines);
 			Registry registry = LocateRegistry.createRegistry(PORT_NUMBER);
-			registry.rebind(MasterToClient.SERVICE_NAME, master);
+			registry.rebind(ManagerToMaster.SERVICE_NAME, master);
 			System.err.println("Master instance bound");
 		} catch (Exception e) {
 			System.err.println("Can't bind Master instance");
@@ -189,67 +308,140 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		return JPregelConstants.WORKER_MGR_THREADS;
 	}
 
-	public void executeTask() {
+	public synchronized boolean isActive() {
+		return this.isActive;
+	}
 
+	public synchronized void deactivate() {
+		this.isActive = false;
+	}
+
+	public synchronized void activate() {
+		this.isActive = true;
+	}
+
+	public void executeTask() throws RemoteException {
+		try {
+			this.gp = new GraphPartitioner(JPregelConstants.GRAPH_FILE, this,
+					this.getVertexClassName());
+		} catch (IOException e) {
+			logger.severe(e.toString());
+			throw new RemoteException(e.getMessage(),e);
+		}
+		this.setAllDone(true);
+		this.activate();
+		logger.info("Starting superstep executor thread");
 		superstepExecutorThread.start();
+		logger.info("Starting fault detector thread");
 		faultDetectorThread.start();
 	}
 
 	public void run() {
-		try {
-
-			initializeWorkerManagers();
-			while (findActiveManagers(this.getSuperStep()) > 0) {
+		
+		while (true) {
+			if (this.isActive()) {
 				try {
-					Thread.sleep(10);
-				} catch (InterruptedException e) {
+					while (!allDone()) {
+
+					}
+					synchronized (idManagerMap) {
+						if (!isWkrMgrsInitialized()) {
+							initializeWorkerManagers();
+							setWkrMgrsInitialized(true);
+						}
+
+						if (findActiveManagers(this.getSuperStep()) > 0) {
+							try {
+								Thread.sleep(10);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+
+							this.setAllDone(false);
+
+							this.setParticipatingMgrs(this.idManagerMap.size());
+							this.returnedManagers.clear();
+							for (Map.Entry<String, WorkerManager> e : this.idManagerMap
+									.entrySet()) {
+								String aWkrMgrId = e.getKey();
+								WorkerManager aWkrMgr = e.getValue();
+
+								logger.info("Commencing superstep : "
+										+ this.getSuperStep()
+										+ " in worker manager : " + aWkrMgrId);
+								aWkrMgr.beginSuperStep(this.getSuperStep(),
+										this.isCheckPoint());
+							}
+							logger.info("Waiting for worker managers to complete execution");
+							while (isActive() && !allDone()) {
+
+							}
+							if (isActive()) {
+								logger.info("Superstep over : "
+										+ this.getSuperStep());
+								this.setSuperStep(this.getSuperStep() + 1);
+							}
+						} else {
+							logger.info("-----------------------------------------------------");
+							logger.info("Writing Solutions");
+							// Writing solutions
+							writeSolutions();
+							break;
+						}
+
+					}
+
+				} catch (RemoteException e) {
+					logger.severe(e.toString());
 					e.printStackTrace();
+					this.deactivate();
+				} catch (IOException e) {
+					logger.severe(e.getMessage());
+					e.printStackTrace();
+					break;
+				} catch (IllegalInputException e) {
+					logger.severe(e.getMessage());
+					e.printStackTrace();
+					break;
+				} catch (DataNotFoundException e) {
+					logger.severe(e.getMessage());
+					e.printStackTrace();
+					break;
+				} catch (InstantiationException e) {
+					logger.severe(e.getMessage());
+					e.printStackTrace();
+					break;
+				} catch (IllegalAccessException e) {
+					logger.severe(e.getMessage());
+					e.printStackTrace();
+					break;
+				} catch (ClassNotFoundException e) {
+					logger.severe(e.getMessage());
+					e.printStackTrace();
+					break;
+				} catch (NoResourcesException e) {
+					logger.severe(e.getMessage());
+					e.printStackTrace();
+					break;
 				}
-				this.setAllDone(false);
 
-				this.activeMgrs = this.idManagerMap.size();
-				for (Map.Entry<String, WorkerManager> e : this.idManagerMap
-						.entrySet()) {
-					String aWkrMgrId = e.getKey();
-					WorkerManager aWkrMgr = e.getValue();
-
-					logger.info("Commencing superstep : " + this.getSuperStep()
-							+ " in worker manager : " + aWkrMgrId);
-					aWkrMgr.beginSuperStep(this.getSuperStep(),
-							this.isCheckPoint());
-				}
-				logger.info("Waiting for worker managers to complete execution");
-				while (!allDone()) {
-
-				}
-				logger.info("Superstep over : " + this.getSuperStep());
-				this.setSuperStep(this.getSuperStep() + 1);
 			}
-			logger.info("-----------------------------------------------------");
-			logger.info("Writing Solutions");
-			// Writing solutions
-			writeSolutions();
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalInputException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (DataNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 
+	}
+
+	/**
+	 * @param b
+	 */
+	private synchronized void setWkrMgrsInitialized(boolean newState) {
+		this.isWkrMgrsInitialized = newState;
+	}
+
+	/**
+	 * @return
+	 */
+	private synchronized boolean isWkrMgrsInitialized() {
+		return this.isWkrMgrsInitialized;
 	}
 
 	/**
@@ -300,6 +492,59 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		return allDone;
 	}
 
+	private void restoreState() throws IOException, IllegalInputException,
+			DataNotFoundException, InstantiationException,
+			IllegalAccessException, ClassNotFoundException,
+			NoResourcesException {
+
+		if (idManagerMap.size() == 0) {
+			throw new NoResourcesException(
+					"No worker managers available to the Master for queueing jobs");
+		}
+
+		List<List<Integer>> assignedPartitions = this.assignPartitions();
+		Map<Integer, Pair<String, String>> partitionWkrMgrMap = this
+				.getPartitionMap(assignedPartitions);
+		this.restoreState(assignedPartitions);
+
+		// Write partition - worker manager map to file
+		DataLocator dl = DataLocator.getDataLocator(gp.getPartitionSize());
+		dl.writePartitionMap(partitionWkrMgrMap);
+		logger.info("Restored state");
+	}
+
+	private void restoreState(List<List<Integer>> assignedPartitions) {
+		int index = 0;
+		for (Map.Entry<String, WorkerManager> anEntry : idManagerMap.entrySet()) {
+			String wkrMgrToBeRestored = anEntry.getKey();
+
+			try {
+				this.logger.info(wkrMgrToBeRestored + " restoring state");
+				anEntry.getValue().restoreState(getLastCheckPoint(),
+						assignedPartitions.get(index));
+			} catch (RemoteException e) {
+				// can't really catch this now, ignore
+				e.printStackTrace();
+			}
+			index++;
+		}
+	}
+
+	private void stopSuperStep() {
+		for (Map.Entry<String, WorkerManager> anEntry : idManagerMap.entrySet()) {
+			String wkrMgrToBeStopped = anEntry.getKey();
+
+			try {
+				this.logger.info(wkrMgrToBeStopped + " stopping superstep");
+				anEntry.getValue().stopSuperStep();
+			} catch (RemoteException e1) {
+				// can't really catch this now, ignore
+				e1.printStackTrace();
+			}
+
+		}
+	}
+
 	/**
 	 * @throws IOException
 	 * @throws DataNotFoundException
@@ -307,54 +552,25 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 	 * @throws ClassNotFoundException
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
+	 * @throws NoResourcesException
 	 * 
 	 */
 	private void initializeWorkerManagers() throws IOException,
 			IllegalInputException, DataNotFoundException,
 			InstantiationException, IllegalAccessException,
-			ClassNotFoundException {
+			ClassNotFoundException, NoResourcesException {
 
-		GraphPartitioner gp = new GraphPartitioner(JPregelConstants.GRAPH_FILE,
-				this, this.vertexClassName);
-		int numPartitions = gp.partitionGraphs();
-
-		int numMgrPartitions = numPartitions / this.getWorkerMgrsCount();
-		List<Integer> wkrMgrPartitions = new Vector<Integer>();
-		int partitionCount = 0;
-		WorkerManager thisWkrMgr = null;
-		String thisWkrMgrId = null;
-		String thisWkrMgrName = null;
-		Map<Integer, Pair<String, String>> partitionWkrMgrMap = new HashMap<Integer, Pair<String, String>>();
-		for (Map.Entry<String, WorkerManager> e : this.idManagerMap.entrySet()) {
-			if (thisWkrMgr != null) {
-				logger.info("Initializing worker manager : "
-						+ thisWkrMgr.getId());
-				thisWkrMgr.initialize(wkrMgrPartitions,
-						this.getWorkerMgrThreads(), gp.getPartitionSize(),
-						gp.getNumVertices());
-			}
-			wkrMgrPartitions.clear();
-			thisWkrMgr = e.getValue();
-			thisWkrMgrId = e.getKey();
-			thisWkrMgrName = thisWkrMgr.getHostInfo();
-
-			for (int i = 0; i < numMgrPartitions; i++, partitionCount++) {
-				partitionWkrMgrMap.put(partitionCount,
-						new Pair<String, String>(thisWkrMgrId, thisWkrMgrName));
-				wkrMgrPartitions.add(partitionCount);
-			}
-
+		if (idManagerMap.size() == 0) {
+			throw new NoResourcesException(
+					"No worker managers available to the Master for queueing jobs");
 		}
 
-		while (partitionCount < numPartitions) {
-			partitionWkrMgrMap.put(partitionCount, new Pair<String, String>(
-					thisWkrMgrId, thisWkrMgrName));
-			wkrMgrPartitions.add(partitionCount);
-			partitionCount++;
-		}
-
-		thisWkrMgr.initialize(wkrMgrPartitions, this.getWorkerMgrThreads(),
-				gp.getPartitionSize(), gp.getNumVertices());
+		int numPartitions = this.gp.partitionGraphs();
+		logger.info("Num partitions : " + numPartitions);
+		List<List<Integer>> assignedPartitions = this.assignPartitions();
+		Map<Integer, Pair<String, String>> partitionWkrMgrMap = this
+				.getPartitionMap(assignedPartitions);
+		this.initializeWorkerManagers(assignedPartitions);
 
 		// Write partition - worker manager map to file
 		DataLocator dl = DataLocator.getDataLocator(gp.getPartitionSize());
@@ -364,6 +580,84 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		logger.info("Cleared solutions folder");
 	}
 
+	private Map<Integer, Pair<String, String>> getPartitionMap(
+			List<List<Integer>> assignedPartitions) throws RemoteException {
+		Map<Integer, Pair<String, String>> partitionWkrMgrMap = new HashMap<Integer, Pair<String, String>>();
+		int index = 0;
+		WorkerManager thisWkrMgr = null;
+		String thisWkrMgrId = null;
+		for (Map.Entry<String, WorkerManager> e : this.idManagerMap.entrySet()) {
+			thisWkrMgrId = e.getKey();
+			thisWkrMgr = e.getValue();
+			List<Integer> thisWkrMgrPartitions = assignedPartitions.get(index);
+			for (int partition : thisWkrMgrPartitions) {
+				partitionWkrMgrMap.put(partition, new Pair<String, String>(
+						thisWkrMgrId, thisWkrMgr.getHostInfo()));
+			}
+			index++;
+		}
+		return partitionWkrMgrMap;
+	}
+
+	private void initializeWorkerManagers(List<List<Integer>> assignedPartitions)
+			throws RemoteException {
+		int index = 0;
+		WorkerManager thisWkrMgr = null;
+
+		for (Map.Entry<String, WorkerManager> e : this.idManagerMap.entrySet()) {
+			thisWkrMgr = e.getValue();
+			List<Integer> thisWkrMgrPartitions = assignedPartitions.get(index);
+			thisWkrMgr.initialize(thisWkrMgrPartitions,
+					this.getWorkerMgrThreads(), this.gp.getPartitionSize(),
+					this.gp.getNumVertices());
+			index++;
+		}
+	}
+
+	private List<List<Integer>> assignPartitions() throws NoResourcesException,
+			IOException, IllegalInputException, DataNotFoundException,
+			InstantiationException, IllegalAccessException,
+			ClassNotFoundException {
+		if (idManagerMap.size() == 0) {
+			throw new NoResourcesException(
+					"No worker managers available to the Master for queueing jobs");
+		}
+		logger.info(idManagerMap.toString());
+
+		List<List<Integer>> assignedPartitions = new Vector<List<Integer>>();
+
+		
+
+		int numMgrPartitions = this.gp.getNumberOfPartitions() / this.getWorkerMgrsCount();
+		List<Integer> wkrMgrPartitions = new Vector<Integer>();
+		int partitionCount = 0;
+		WorkerManager thisWkrMgr = null;
+		for (Map.Entry<String, WorkerManager> e : this.idManagerMap.entrySet()) {
+			if (thisWkrMgr != null) {
+				logger.info("Generating partitions for worker manager : "
+						+ thisWkrMgr.getId() + " -> " + wkrMgrPartitions);
+				assignedPartitions.add(wkrMgrPartitions);
+			}
+			wkrMgrPartitions = new Vector<Integer>();
+			thisWkrMgr = e.getValue();
+			for (int i = 0; i < numMgrPartitions; i++, partitionCount++) {
+				wkrMgrPartitions.add(partitionCount);
+				logger.info("added : " + partitionCount);
+			}
+			logger.info("End of loop : " + wkrMgrPartitions);
+		}
+
+		while (partitionCount < this.gp.getNumberOfPartitions()) {
+			wkrMgrPartitions.add(partitionCount);
+			partitionCount++;
+		}
+
+		assignedPartitions.add(wkrMgrPartitions);
+
+		logger.info("Assigned partitions : " + assignedPartitions);
+		return assignedPartitions;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -371,24 +665,37 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 	 */
 	@Override
 	public void endSuperStep(String wkrMgrId) throws RemoteException {
-		if (this.activeMgrs > 0) {
-			if (idManagerMap.containsKey(wkrMgrId)) {
+
+		// this fellow shouldn't have returned before .. checking just in
+		// case there is a double endSuperStep() done by a worker manager
+		// during a stopSuperStep() call
+		if (!this.returnedManagers.contains(wkrMgrId)
+				&& superStep == this.getSuperStep()) {
+			// Checking if any managers are yet to report completion
+			if (this.getParticipatingMgrs() > 0) {
+
 				logger.info("Worker manager : " + wkrMgrId
 						+ " has reported completion of superstep : "
 						+ this.getSuperStep());
-				this.activeMgrs--;
-			}
-			if (this.activeMgrs == 0) {
-				logger.info("All worker managers reported completion of superstep : "
-						+ this.getSuperStep());
-				if (this.isCheckPoint()) {
-					logger.info("#############################");
-					logger.info("Checkpointed data at superstep : "+this.getSuperStep());
-					logger.info("#############################");
+				this.setParticipatingMgrs(this.getParticipatingMgrs() - 1);
+				this.returnedManagers.add(wkrMgrId);
+
+				if (this.getParticipatingMgrs() == 0) {
+					logger.info("All worker managers reported completion of superstep : "
+							+ this.getSuperStep());
+					if (this.isCheckPoint()) {
+						logger.info("#############################");
+						logger.info("Checkpointed data at superstep : "
+								+ this.getSuperStep());
+						logger.info("#############################");
+						this.setLastCheckPoint(this.getSuperStep());
+
+					}
+					setAllDone(true);
 				}
-				setAllDone(true);
 			}
 		}
+
 	}
 
 	/**

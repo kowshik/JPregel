@@ -19,9 +19,17 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import exceptions.DataNotFoundException;
+
 import system.Worker.WorkerState;
+import utility.JPregelLogger;
+import utility.Pair;
 
 /**
+ * This class aggregates messages which are meant to be other machines at the
+ * end of a superstep. This reduces the number of RMI class destined to any
+ * machine in the cluster.
+ * 
  * @author Manasa Chandrasekhar
  * @author Kowshik Prakasam
  * 
@@ -37,9 +45,19 @@ public class Communicator implements Runnable {
 	private WorkerManagerImpl wkrMgr;
 	private DataLocator aDataLocator;
 
+	/**
+	 * 
+	 * @return DataLocator DataLocator internally stored in this class
+	 */
 	public DataLocator getDataLocator() {
 		return aDataLocator;
 	}
+
+	/**
+	 * Sets the DataLocator internally stored in this class
+	 * 
+	 * @param aDataLocator
+	 */
 
 	public void setDataLocator(DataLocator aDataLocator) {
 		this.aDataLocator = aDataLocator;
@@ -64,25 +82,53 @@ public class Communicator implements Runnable {
 
 	}
 
+	/**
+	 * Gets the class ID
+	 * 
+	 * @return
+	 */
 	public String getId() {
 		return id;
 	}
 
+	/**
+	 * Queues an incoming message from a Worker thread
+	 * 
+	 * @param msg
+	 */
 	public synchronized void queueMessage(Message msg) {
 		this.msgQueue.add(msg);
 	}
 
+	/**
+	 * Returns the state of the Communicator
+	 * 
+	 * @return
+	 */
 	public synchronized CommunicatorState getState() {
 		return state;
 	}
 
+	/**
+	 * Sets the state of the Communicator
+	 * 
+	 * @param state
+	 */
 	public synchronized void setState(CommunicatorState state) {
 		this.state = state;
 	}
 
-	public Communicator(WorkerManagerImpl wkrMgr) throws IOException {
-		this.setId(InetAddress.getLocalHost().getHostName() + "_"
-				+ getRandomChars());
+	/**
+	 * 
+	 * @param wkrMgr
+	 *            WorkerManager that owns this Communicator
+	 * @param ID
+	 *            of the owner
+	 * @throws IOException
+	 */
+
+	public Communicator(WorkerManagerImpl wkrMgr, String id) throws IOException {
+		this.setId(id + "_" + this.getRandomChars());
 		this.initLogger();
 		this.wkrMgr = wkrMgr;
 		this.registeredWorkers = new Vector<Worker>();
@@ -91,6 +137,9 @@ public class Communicator implements Runnable {
 		t = new Thread(this, "Communicator");
 		t.start();
 	}
+
+	// The communicator loops forever polling workers to check if the have
+	// transitioned states
 
 	@Override
 	public void run() {
@@ -108,12 +157,12 @@ public class Communicator implements Runnable {
 					try {
 						logger.info("Commencing communications");
 						communicate();
-						//SET communicator state to STOP below when handling exceptions
 					} catch (UnknownHostException e) {
 						logger.severe("UnknownHostException occured in communicate()");
 						e.printStackTrace();
 					} catch (RemoteException e) {
 						logger.severe("RemoteException occured in communicate()");
+						logger.severe(e.toString());
 						e.printStackTrace();
 					} catch (DataNotFoundException e) {
 						logger.severe("DataNotFoundException occured in communicate()");
@@ -124,7 +173,8 @@ public class Communicator implements Runnable {
 					} catch (NotBoundException e) {
 						logger.severe("NotBoundException occured in communicate()");
 						e.printStackTrace();
-					}finally{
+					} finally {
+						logger.info("Setting communicator state to STOP");
 						this.setState(CommunicatorState.STOP);
 					}
 				}
@@ -133,6 +183,7 @@ public class Communicator implements Runnable {
 	}
 
 	/**
+	 * All the communication happens here 
 	 * @throws DataNotFoundException
 	 * @throws IOException
 	 * @throws NotBoundException
@@ -151,6 +202,7 @@ public class Communicator implements Runnable {
 	}
 
 	/**
+	 * 
 	 * @throws RemoteException
 	 * 
 	 */
@@ -169,6 +221,7 @@ public class Communicator implements Runnable {
 
 	}
 
+	//Populates message spooler queues for all machines
 	private void populateSpoolerQueues() throws IOException,
 			DataNotFoundException, NotBoundException, MalformedURLException,
 			RemoteException, UnknownHostException {
@@ -234,6 +287,7 @@ public class Communicator implements Runnable {
 	}
 
 	/**
+	 * 
 	 * @param targetWkrMgrHostName
 	 * @return
 	 * @throws
@@ -277,6 +331,10 @@ public class Communicator implements Runnable {
 
 	}
 
+	/**
+	 * 
+	 * @param aWorker A Worker thread that should be polled for state changes
+	 */
 	public void registerWorker(Worker aWorker) {
 		this.registeredWorkers.add(aWorker);
 	}
@@ -297,4 +355,5 @@ public class Communicator implements Runnable {
 		char third = (char) ((new Random().nextInt(26)) + 65);
 		return "" + first + second + third;
 	}
+
 }

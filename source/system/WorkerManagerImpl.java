@@ -22,7 +22,21 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import exceptions.DataNotFoundException;
+import exceptions.IllegalClassException;
+import exceptions.IllegalInputException;
+import exceptions.IllegalMessageException;
+
+import api.Vertex;
+
+import system.Communicator.CommunicatorState;
+import system.Worker.WorkerState;
+import utility.JPregelLogger;
+
 /**
+ * 
+ * Implementation of interface worker manager.
+ * 
  * @author Manasa Chandrasekhar
  * @author Kowshik Prakasam
  * 
@@ -53,6 +67,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	private Communicator aCommunicator;
 	private int superStep;
 	private boolean isCheckPoint;
+	private int numWorkers;
 
 	public Communicator getCommunicator() {
 		return aCommunicator;
@@ -69,11 +84,13 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 
 	private WorkerManagerImpl() throws IOException {
 		this.workers = new Vector<Worker>();
-		this.aCommunicator = new Communicator(this);
+
 		this.idVertexMap = new HashMap<Integer, Vertex>();
 		this.incomingMsgs = new LinkedList<Message>();
 		this.setId(InetAddress.getLocalHost().getHostName() + "_"
 				+ WorkerManagerImpl.getRandomChars());
+		this.aCommunicator = new Communicator(this, this.getId());
+		this.numWorkers = 1;
 		this.initLogger();
 	}
 
@@ -166,9 +183,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	public void initialize(List<Integer> partitionNumbers, int numWorkers,
 			int partitionSize, int numVertices) throws RemoteException {
 		logger.info("Received partitionNumbers : " + partitionNumbers);
-		Iterator<Integer> it = partitionNumbers.iterator();
-		List<Integer> threadPartitions = new Vector<Integer>();
-
+		this.setNumWorkers(numWorkers);
 		// Set datalocator in communicator
 		DataLocator aDataLocator = null;
 		try {
@@ -182,66 +197,95 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		}
 		this.getCommunicator().setDataLocator(aDataLocator);
 
-		int wkrPartitionCount = partitionNumbers.size() / numWorkers;
-		if (wkrPartitionCount == 0 && numWorkers != 0) {
-			wkrPartitionCount = partitionNumbers.size();
+		// assign partitions to workers
+		List<List<Integer>> assignedPartitions = this
+				.assignPartitions(partitionNumbers);
+
+		// for each assigned partition, initialize the worker
+		for (List<Integer> threadPartition : assignedPartitions) {
+
+			try {
+				Worker aWkr = new Worker(threadPartition, partitionSize, this,
+						vertexClassName, this.getCommunicator(), numVertices);
+				this.getCommunicator().registerWorker(aWkr);
+				this.idVertexMap.putAll(aWkr.getVertices());
+				logger.info("Cached all vertices of this worker. Size of id->vertex map is : "
+						+ this.idVertexMap.size());
+				this.workers.add(aWkr);
+				logger.info("Added new worker : " + aWkr);
+			} catch (DataNotFoundException e) {
+				logger.severe("Unable to read partitions in worker manager : "
+						+ this.getId());
+				e.printStackTrace();
+			} catch (IOException e) {
+				logger.severe("Unable to read partitions in worker manager : "
+						+ this.getId());
+				e.printStackTrace();
+			} catch (IllegalInputException e) {
+				logger.severe("Unable to read partitions in worker manager : "
+						+ this.getId());
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				logger.severe("Unable to instantiate client vertex class : "
+						+ vertexClassName);
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				logger.severe("Unable to instantiate client vertex class : "
+						+ vertexClassName);
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				logger.severe("Client vertex class not found : "
+						+ vertexClassName);
+				e.printStackTrace();
+			}
 		}
-		while (it.hasNext() && (workers.size() != numWorkers)) {
+		logger.info("Initialized worker manager : " + this.getId()
+				+ "\n\n Workers are : " + workers);
+	}
+
+	//Returns partition assignments to worker managers
+	private List<List<Integer>> assignPartitions(List<Integer> partitions) {
+		Iterator<Integer> it = partitions.iterator();
+		List<Integer> threadPartitions = new Vector<Integer>();
+		List<List<Integer>> assignedPartitions = new Vector<List<Integer>>();
+		int wkrPartitionCount = partitions.size() / this.getNumWorkers();
+		if (wkrPartitionCount == 0 && this.getNumWorkers() != 0) {
+			wkrPartitionCount = partitions.size();
+		}
+
+		int assignedWrkrs = 0;
+		while (it.hasNext() && (assignedWrkrs != this.getNumWorkers())) {
 			int thisWkrPartitionCount = 0;
-			threadPartitions.clear();
+			threadPartitions = new Vector<Integer>();
 			while (thisWkrPartitionCount < wkrPartitionCount && it.hasNext()) {
 				threadPartitions.add(it.next());
 				thisWkrPartitionCount++;
 			}
 			if (thisWkrPartitionCount > 0) {
-				try {
-					if (it.hasNext() && this.workers.size() + 1 == numWorkers) {
-						while (it.hasNext()) {
-							threadPartitions.add(it.next());
-						}
-					}
-					Worker aWkr = new Worker(new Vector<Integer>(
-							threadPartitions), partitionSize, this,
-							vertexClassName, this.getCommunicator(),
-							numVertices);
-					this.getCommunicator().registerWorker(aWkr);
-					this.idVertexMap.putAll(aWkr.getVertices());
-					logger.info("Cached all vertices of this worker. Size of id->vertex map is : "
-							+ this.idVertexMap.size());
-					this.workers.add(aWkr);
-					logger.info("Added new worker : " + aWkr);
-				} catch (DataNotFoundException e) {
-					logger.severe("Unable to read partitions in worker manager : "
-							+ this.getId());
-					e.printStackTrace();
-				} catch (IOException e) {
-					logger.severe("Unable to read partitions in worker manager : "
-							+ this.getId());
-					e.printStackTrace();
-				} catch (IllegalInputException e) {
-					logger.severe("Unable to read partitions in worker manager : "
-							+ this.getId());
-					e.printStackTrace();
-				} catch (InstantiationException e) {
-					logger.severe("Unable to instantiate client vertex class : "
-							+ vertexClassName);
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					logger.severe("Unable to instantiate client vertex class : "
-							+ vertexClassName);
-					e.printStackTrace();
-				} catch (ClassNotFoundException e) {
-					logger.severe("Client vertex class not found : "
-							+ vertexClassName);
-					e.printStackTrace();
-				}
-			}
 
+				if (it.hasNext() && assignedWrkrs + 1 == this.getNumWorkers()) {
+					while (it.hasNext()) {
+						threadPartitions.add(it.next());
+					}
+				}
+				assignedPartitions.add(threadPartitions);
+				assignedWrkrs++;
+			}
 		}
 
-		logger.info("Initialized worker manager : " + this.getId()
-				+ "\n\n Workers are : " + workers);
+		return assignedPartitions;
+	}
 
+	/**
+	 * @param numWorkers
+	 */
+	private void setNumWorkers(int numWorkers) {
+		this.numWorkers = numWorkers;
+
+	}
+
+	private int getNumWorkers() {
+		return this.numWorkers;
 	}
 
 	/*
@@ -254,13 +298,13 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 			throws RemoteException {
 		this.superStep = superStepNumber;
 		this.isCheckPoint = isCheckPoint;
-		
-		
+
 		logger.info("Beginning superstep : " + superStepNumber);
 		// Distribute messages from last superstep
 		try {
-			boolean msgDistributed=distributeMessages();
-			if (this.isCheckPoint || superStep == JPregelConstants.FIRST_SUPERSTEP) {
+			boolean msgDistributed = distributeMessages();
+			if (this.isCheckPoint
+					|| superStep == JPregelConstants.FIRST_SUPERSTEP) {
 				checkpointData();
 			}
 			if (msgDistributed
@@ -320,7 +364,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	private void checkpointData() throws RemoteException {
 
 		try {
-			this.saveData();
+			this.saveState();
 		} catch (IOException e) {
 			String msg = e.getMessage();
 			logger.severe(msg);
@@ -335,17 +379,16 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 
 	}
 
-
 	/**
 	 * @throws DataNotFoundException
 	 * @throws IOException
 	 * 
 	 */
-	private void saveData() throws IOException, DataNotFoundException {
+	private void saveState() throws IOException, DataNotFoundException {
 		for (int index = 0; index < this.workers.size(); index++) {
 			Worker aWorker = this.workers.get(index);
 			aWorker.setSuperStep(this.superStep);
-			aWorker.saveData();
+			aWorker.saveState();
 			logger.info("Checkpointed data for worker : " + aWorker.getId());
 		}
 
@@ -412,13 +455,79 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see system.WorkerManager#isAlive()
 	 */
 	@Override
 	public void isAlive() throws RemoteException {
-		//does nothing, dummy method to check if host is alive
-		
+		// does nothing, dummy method to check if host is alive
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see system.WorkerManager#stopSuperStep()
+	 */
+	@Override
+	public void stopSuperStep() throws RemoteException {
+		logger.severe("Received STOP signal from Master");
+		for (int index = 0; index < this.workers.size(); index++) {
+			Worker aWorker = this.workers.get(index);
+			aWorker.setState(WorkerState.STOP);
+			logger.severe("Issued STOP signal to worker : " + aWorker.getId());
+		}
+		logger.severe("Issued STOP signal to communicator");
+		aCommunicator.setState(CommunicatorState.STOP);
+		this.endSuperStep();
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see system.WorkerManager#restoreState(int)
+	 */
+	@Override
+	public void restoreState(int lastCheckPoint, List<Integer> partitions)
+			throws RemoteException {
+		logger.warning("Restoring to last check point number : "
+				+ lastCheckPoint);
+		logger.warning("Received new partitions : " + partitions.toString());
+
+		// assign partitions to workers
+		List<List<Integer>> assignedPartitions = this
+				.assignPartitions(partitions);
+
+		for (int index = 0; index < this.workers.size(); index++) {
+			this.idVertexMap.clear();
+			Worker aWorker = this.workers.get(index);
+			try {
+				logger.info("Restoring state of worker : " + aWorker.getId());
+				aWorker.restoreState(lastCheckPoint, partitions);
+				this.idVertexMap.putAll(aWorker.getVertices());
+				logger.info("Restored all vertices for this worker. Size of id->vertex map now is : "
+						+ this.idVertexMap.size());
+			} catch (IOException e) {
+				String msg = e.getMessage();
+				logger.severe(msg);
+				e.printStackTrace();
+				throw new RemoteException(msg, e);
+			} catch (DataNotFoundException e) {
+				String msg = e.getMessage();
+				logger.severe(msg);
+				e.printStackTrace();
+				throw new RemoteException(msg, e);
+			} catch (ClassNotFoundException e) {
+				String msg = e.getMessage();
+				logger.severe(msg);
+				e.printStackTrace();
+				throw new RemoteException(msg, e);
+			}
+		}
+
 	}
 
 }
