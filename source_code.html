@@ -20,7 +20,7 @@
 	<div id="menu">
 		<a href="index.html">Home</a>
 		<a href="developers.html">Developers</a>
-		<a href="#" class="active">Source Code</a>
+		<a href="#" class="active">Source Code + How-To</a>
 		<a href="team.html">Team</a>
 		
 	</div>
@@ -56,6 +56,60 @@
             <br>
         <pre>$ git clone git://github.com/kowshik/JPregel</pre>
      </p>
+<br><br>
+
+<h3>How-to build JPregel system and dev packages :</h3><p>
+<ol>
+<li>Download the <a href="source_code.html"> source code </a> and extract the archive.
+
+<li>Modify build.xml to configure hosts in your compute cluster. Setup a headless user account for SSHing in your cluster, and update the same in the build.xml.
+
+<li>Run the following command to compile :<br><br>
+    <b>$ ant compile</b>
+
+<li>Run the following command to build JPregel. The JAR file : jpregel.jar is created in dist/.<br><br>
+    
+     <b>$ ant build_jpregel</b>
+
+<li>Run the following command to create JPregel Dev Package. The JAR file : jpregel_dev.jar is created in dist/.<br><br>
+  
+     <b>$ ant build_dev</b>
+</ol>
+<br>
+<h3>How-to create your JPregel application and deploy the system :</h3><p>
+<ol>
+<li> Extend class api.Vertex to create your own Vertex class. Lets call it ClientVertex.java.
+
+<li> Compile ClientVertex.java using the command :<br><br>
+   
+   <b> $ javac -cp <path_to_jpregel_dev.jar> ClientVertex.java</b>
+
+<li> Build application.jar using the command :<br><br>
+
+   <b> $ jar cvf application.jar <your_class_files><br></b><br>
+   Example : jar cvf application ClientVertex.class<br>
+
+<li>Copy your input graph file (adjacency list representation) to graph.dat under the same folder. Alternatively, you can also generate random graphs using the command :<br><br>
+    <b>$ ant runGraphGenerator -Dmax_cost=&lt;max_cost_value&gt; -Dnum_vertices=&lt;num_vertices_in_graph&gt;</b><br><br>
+
+Example : ant runGraphGenerator -Dmax_cost=1000 -Dnum_vertices=25, generates graph.dat file containing adjacency list of a directed graph of 25 vertices with cost of each outgoing edge from a vertex lying between 1 and 1000.<br>
+
+<li>Run a remote JPregel master using the command :<br><br>
+
+   <b>$ ant runRemoteMaster -Dusername=&lt;SSH_username&gt; -Dapp=&lt;absolute_path_to_application.jar&gt; -Dvertex_class=&lt;your_vertex_class&gt; -Dnum_machines=&lt;num_worker_machines&gt;</b><br><br>
+
+  Example :   ant runRemoteMaster -Dusername=blahblah -Dapp=/home/blahblah/application.jar -Dvertex_class=ClientVertex -Dnum_machines=16<br>
+
+<li>Run remote JPregel workers using the command (XX refers to number of worker managers. See "ant-projecthelp"):<br><br>
+
+   <b>$ ant runXXWkrManagers -Dusername=&lt;SSH_username&gt; -Dapp=&lt;absolute_path_to_application.jar&gt; -Dvertex_class=&lt;your_vertex_class&gt;</b><br><br>
+
+  Example :   ant run16WkrManagers -Dusername=blahblah -Dapp=/home/blahblah/application.jar -Dvertex_class=ClientVertex<br>
+
+<li>Once the specified machines complete registration with the master, the execution of your application will commence. Logs will be written to the folder logs/. Checkpointing data is written to checkpoints/. Solutions is written to solutions/ upon completion of computations.
+</ol>
+
+
 <br><br><br>
 <br><br><br>
 <br><br><br>
