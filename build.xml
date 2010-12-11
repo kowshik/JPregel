@@ -32,7 +32,7 @@
     <property name="host13" value="beavis.cs.ucsb.edu"/>
     <property name="host14" value="brain.cs.ucsb.edu"/>
     <property name="host15" value="bugs.cs.ucsb.edu"/>
-    <property name="host16" value="satchmo.cs.ucsb.edu"/>
+    <property name="host16" value="linus.cs.ucsb.edu"/>
     
     <property name="master" value="snoopy.cs.ucsb.edu"/>
     
