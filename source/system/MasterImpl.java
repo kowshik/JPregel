@@ -123,7 +123,9 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 				} catch (RemoteException e) {
 					this.logger
 							.severe("Worker manager : " + wkrMgrID + " died");
-
+					System.err.println("Worker manager : "+wkrMgrID+" died");
+					e.printStackTrace();
+					System.err.println("Deactivating master");
 					// deactivate master
 					deactivate();
 
@@ -139,6 +141,9 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 								.info(wkrMgrID
 										+ " didn't report completion earlier .. so decrementing participatingMgrs to "
 										+ participatingMgrs);
+						System.err.println(wkrMgrID
+								+ " didn't report completion earlier .. so decrementing participatingMgrs to "
+								+ participatingMgrs);
 						if (getParticipatingMgrs() == 0) {
 							allDone = true;
 						}
@@ -146,6 +151,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 					// for all worker managers, other than the failed
 					// manager,
 					// stop the superstep immediately.
+					
 					stopSuperStep();
 
 					// for all worker managers, other than the failed
@@ -387,6 +393,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 							logger.info("Writing Solutions");
 							// Writing solutions
 							writeSolutions();
+							System.err.println("Computations completed. Solutions written to solutions/. Logs in logs/ !");
 							break;
 						}
 
@@ -520,9 +527,11 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 			String wkrMgrToBeRestored = anEntry.getKey();
 
 			try {
+				System.err.println(wkrMgrToBeRestored + " restoring state");
 				this.logger.info(wkrMgrToBeRestored + " restoring state");
 				anEntry.getValue().restoreState(getLastCheckPoint(),
 						assignedPartitions.get(index));
+				System.err.println(wkrMgrToBeRestored + " state restoration - SUCCESSFUL !");
 			} catch (RemoteException e) {
 				// can't really catch this now, ignore
 				e.printStackTrace();
@@ -536,6 +545,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 			String wkrMgrToBeStopped = anEntry.getKey();
 
 			try {
+				System.err.println(wkrMgrToBeStopped + " stopping superstep");
 				this.logger.info(wkrMgrToBeStopped + " stopping superstep");
 				anEntry.getValue().stopSuperStep();
 			} catch (RemoteException e1) {

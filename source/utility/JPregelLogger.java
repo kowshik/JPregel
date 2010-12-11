@@ -48,10 +48,11 @@ public class JPregelLogger {
 		logHandle.setFormatter(new SimpleFormatter());
 		aLogger.addHandler(logHandle);
 		aLogger.info("init " + classId + " Logger successful");
-		/*
-		 * if (!classId.equals ("Master") && !classId. startsWith ("Fault")) {
-		 * aLogger .setLevel (Level .SEVERE); }
-		 */
+
+		if (!classId.equals("Master") && !classId.startsWith("Fault")) {
+			aLogger.setLevel(Level.SEVERE);
+		}
+
 		return aLogger;
 	}
 }
