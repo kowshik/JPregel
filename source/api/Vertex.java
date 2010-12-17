@@ -326,5 +326,6 @@ public abstract class Vertex implements Serializable {
 		this.msgs.clear();
 
 	}
+	
 
 }

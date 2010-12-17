@@ -22,16 +22,14 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import system.Communicator.CommunicatorState;
+import system.Worker.WorkerState;
+import utility.JPregelLogger;
+import api.Vertex;
 import exceptions.DataNotFoundException;
 import exceptions.IllegalClassException;
 import exceptions.IllegalInputException;
 import exceptions.IllegalMessageException;
-
-import api.Vertex;
-
-import system.Communicator.CommunicatorState;
-import system.Worker.WorkerState;
-import utility.JPregelLogger;
 
 /**
  * 
@@ -68,6 +66,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	private int superStep;
 	private boolean isCheckPoint;
 	private int numWorkers;
+	private boolean justRecovered;
 
 	public Communicator getCommunicator() {
 		return aCommunicator;
@@ -184,6 +183,7 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 			int partitionSize, int numVertices) throws RemoteException {
 		logger.info("Received partitionNumbers : " + partitionNumbers);
 		this.setNumWorkers(numWorkers);
+
 		// Set datalocator in communicator
 		DataLocator aDataLocator = null;
 		try {
@@ -243,7 +243,18 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 				+ "\n\n Workers are : " + workers);
 	}
 
-	//Returns partition assignments to worker managers
+	/**
+	 * @param b
+	 */
+	private synchronized void setRecoveryStep(boolean isRecoveryStep) {
+		this.justRecovered = isRecoveryStep;
+	}
+
+	private synchronized boolean justRecovered() {
+		return this.justRecovered;
+	}
+
+	// Returns partition assignments to worker managers
 	private List<List<Integer>> assignPartitions(List<Integer> partitions) {
 		Iterator<Integer> it = partitions.iterator();
 		List<Integer> threadPartitions = new Vector<Integer>();
@@ -302,7 +313,11 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		logger.info("Beginning superstep : " + superStepNumber);
 		// Distribute messages from last superstep
 		try {
-			boolean msgDistributed = distributeMessages();
+			boolean msgDistributed = false;
+			if (!this.justRecovered()) {
+				msgDistributed = distributeMessages();
+			}
+			this.setRecoveryStep(false);
 			if (this.isCheckPoint
 					|| superStep == JPregelConstants.FIRST_SUPERSTEP) {
 				checkpointData();
@@ -413,8 +428,11 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 	 * @see system.VertexMessaging#getQueueSize()
 	 */
 	@Override
-	public synchronized int getQueueSize() throws RemoteException {
-		return this.incomingMsgs.size();
+	public synchronized boolean isQueueEmpty() throws RemoteException {
+		if (this.incomingMsgs.size() > 0 || this.justRecovered()) {
+			return false;
+		}
+		return true;
 	}
 
 	/*
@@ -501,13 +519,18 @@ public class WorkerManagerImpl extends UnicastRemoteObject implements
 		List<List<Integer>> assignedPartitions = this
 				.assignPartitions(partitions);
 
+		// clear global maps and queues
+		this.incomingMsgs.clear();
+		this.idVertexMap.clear();
+
 		for (int index = 0; index < this.workers.size(); index++) {
-			this.idVertexMap.clear();
 			Worker aWorker = this.workers.get(index);
 			try {
 				logger.info("Restoring state of worker : " + aWorker.getId());
 				aWorker.restoreState(lastCheckPoint, partitions);
+
 				this.idVertexMap.putAll(aWorker.getVertices());
+
 				logger.info("Restored all vertices for this worker. Size of id->vertex map now is : "
 						+ this.idVertexMap.size());
 			} catch (IOException e) {

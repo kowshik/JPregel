@@ -25,5 +25,5 @@ public interface MessageSpooler extends java.rmi.Remote {
 	 * @return Returns the size of the queue for the next superstep at this instant
 	 * @throws RemoteException
 	 */
-	int getQueueSize() throws RemoteException;
+	boolean isQueueEmpty() throws RemoteException;
 }

@@ -485,7 +485,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 		int activeManagers = 0;
 		for (Map.Entry<String, WorkerManager> e : this.idManagerMap.entrySet()) {
 			MessageSpooler aSpooler = (MessageSpooler) e.getValue();
-			if (aSpooler.getQueueSize() > 0) {
+			if (!aSpooler.isQueueEmpty()) {
 				activeManagers++;
 			}
 		}
@@ -694,7 +694,7 @@ public class MasterImpl extends UnicastRemoteObject implements ManagerToMaster,
 				if (this.getParticipatingMgrs() == 0) {
 					logger.info("All worker managers reported completion of superstep : "
 							+ this.getSuperStep());
-					if (this.isCheckPoint()) {
+					if (this.isCheckPoint() && this.isActive()) {
 						logger.info("#############################");
 						logger.info("Checkpointed data at superstep : "
 								+ this.getSuperStep());

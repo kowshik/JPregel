@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
 
@@ -281,6 +282,18 @@ public class GraphPartition implements Serializable {
 	 */
 	public void setDataLocator(DataLocator aDataLocator) {
 		this.aDataLocator = aDataLocator;
+	}
+
+	/**
+	 * @return
+	 */
+	public List<Message> retrieveAllMsgs() {
+		List<Message> allMsgs=new Vector<Message>();
+		for(Vertex v : this.listOfVertices){
+			allMsgs.addAll(v.getMessages());
+			v.clearMessageQueue();
+		}
+		return allMsgs;
 	}
 
 }

@@ -18,7 +18,6 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import utility.JPregelLogger;
-
 import api.Vertex;
 
 /**
@@ -282,6 +281,18 @@ public class Worker implements Runnable {
 			logger.info("Restored : "+aPartition);
 		}
 		this.listOfPartitions=restoredList;
+	}
+
+	/**
+	 * @return
+	 */
+	public List<Message> retrieveAllMsgs() {
+			List<Message> allMsgs=new Vector<Message>();
+			for(GraphPartition gp : this.listOfPartitions){
+				allMsgs.addAll(gp.retrieveAllMsgs());
+			}
+			
+			return allMsgs;
 	}
 
 }
