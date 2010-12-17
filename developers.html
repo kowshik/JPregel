@@ -20,7 +20,7 @@
 	<div id="menu">
 		<a href="index.html">Home</a>
 		<a href="developers.html" href="#" class="active">Developers</a>
-		<a href="source_code.html">Source Code</a>
+		<a href="source_code.html">Source Code + How-To</a>
 		<a href="team.html">Team</a> 
 	</div>
 </div>
@@ -37,9 +37,13 @@
 	<br>
 	<h3>Developer Docs</h3>
 	<ul>
-	<li><a href="#apitutorial">API Tutorial</a></li>
+	<li><a href="documents/jpregel.pptx">Presentation</a></li>
+	<li><a href="documents/design.pdf">Design Document</a></li>
+	<li><a href="documents/javadoc/index.html">Javadoc</a></li>
+	<li><a href="#apitutorial">API Tutorial</a></li>	
 	<li><a href="#shortestpaths">Example 1 : Shortest Paths Problem</a></li>
-	<li><a href="#pagerank">Example 1 : PageRank Algorithm</a></li>	
+	<li><a href="#pagerank">Example 2 : PageRank Algorithm</a></li>
+	<li><a href="#futurework">Future Work</a></li>
 	</ul>
 	<br><br>
 	<h3 id="apitutorial">API Tutorial</h3>
@@ -50,77 +54,118 @@
 <span style='color:#b060b0; '>{</span>
     <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#e66170; font-weight:bold; '>abstract</span> <span style='color:#bb7977; '>void</span> compute<span style='color:#d2cd86; '>(</span><span style='color:#bb7977; font-weight:bold; '>List</span><span style='color:#d2cd86; '>&lt;</span>Message<span style='color:#d2cd86; '>></span> msgs<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
     <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; font-weight:bold; '>String</span> getVertexID<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; font-weight:bold; '>int</span> getNumberOfVertices<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; font-weight:bold; '>int</span> getSuperStep<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>int</span> getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> setValue<span style='color:#d2cd86; '>(</span><span style='color:#bb7977; '>int</span> newValue<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> sendMessageTo<span style='color:#d2cd86; '>(</span><span style='color:#bb7977; font-weight:bold; '>String</span> destVertexID<span style='color:#d2cd86; '>,</span> <span style='color:#bb7977; '>int</span> msgValue<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> voteToHalt<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>int</span> getTotalNumVertices<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>int</span> getSuperStep<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>double</span> getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> setValue<span style='color:#d2cd86; '>(</span><span style='color:#bb7977; '>double</span> newValue<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; font-weight:bold; '>List</span><span style='color:#d2cd86; '>&lt;</span>Message<span style='color:#d2cd86; '>></span> getMessages<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> sendMessage<span style='color:#d2cd86; '>(</span>Edge e<span style='color:#d2cd86; '>,</span> <span style='color:#bb7977; '>double</span> msgValue<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
     <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; font-weight:bold; '>List</span><span style='color:#d2cd86; '>&lt;</span>Edge<span style='color:#d2cd86; '>></span> getEdges<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-    <span style='color:#e66170; font-weight:bold; '>public</span> Communicator getCommunicator<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> writeSolution<span style='color:#d2cd86; '>(</span><span style='color:#bb7977; font-weight:bold; '>OutputStream</span> anOutputStream<span style='color:#d2cd86; '>)</span> 
+                                         <span style='color:#e66170; font-weight:bold; '>throws</span> <span style='color:#bb7977; font-weight:bold; '>IOException</span><span style='color:#b060b0; '>;</span>
 <span style='color:#b060b0; '>}</span>
 </pre>
+</pre>
 <p>
-The developer implements the abstract method : <i><b>Vertex.compute(List&lt;Message&gt; msgs)</b></i> which will be executed at each active vertex in every superstep. The <i><b>msgs</b></i> parameter is a list of messages passed to this vertex by other vertices at the end of the previous superstep. These messages contain information to be processed in the vertex-centric computation.<br><br>
+The developer implements the abstract method : <i><b>Vertex.compute()</b></i> which will be executed at each active vertex in every superstep. The method : <i><b>getMessages()</b></i> returns a list of messages passed to this vertex by other vertices at the end of the previous superstep. These messages contain information to be processed in the vertex-centric computation.<br><br>
 
 Inside the <i><b>compute()</b></i> method, the developer can use other <i><b>Vertex</b></i>  methods to obtain information about the current vertex and its edges and to send message to other vertices.<br><br>
 
-The method : <i><b>getVertexID()</b></i> returns the unique identification for the vertex. The methods : <i><b>getValue()</b></i> and <i><b>setValue(int newValue)</b></i> can be used to get and set the vertex value. As of now, class <i><b>Vertex</b></i>  is not generic. This means that vertices can store integers as values and vertices can send messages containing integer values to other vertices. We plan to improve to a generic design in the future once we have a stable end-to-end system in place.<br><br>
+The method : <i><b>getVertexID()</b></i> returns the unique identification for the vertex. The methods : <i><b>getValue()</b></i> and <i><b>setValue(double newValue)</b></i> can be used to get and set the vertex value. As of now, class <i><b>Vertex</b></i>  is not generic. This means that vertices can store 'Double' values and vertices can send messages containing 'Double' values to other vertices. We plan to improve to a generic design in the future once we have a stable end-to-end system in place.<br><br>
 
-Vertices communicate with one another by sending messages using the <i><b>sendMessageTo(String destVertexID, int msgValue)</b></i> method. For each call to this method, the vertex has to pass a message value (integer, as of now) and the ID of the destination vertex. The <i><b>getEdges()</i></b> method returns a list of outgoing edges of this vertex in the input graph. The method <i><b>Edge.getCost()</i></b> defined in class <i><b>Edge</b></i>  can be used to get the cost of an outgoing edge.<br><br>
+Vertices communicate with one another by sending messages using the <i><b>sendMessageTo(Edge e, double msgValue)</b></i> method. For each call to this method, the vertex has to pass a message value (Double, as of now) and an outgoing edge starting from this vertex and ending in a neighbouring vertex. The <i><b>getEdges()</i></b> method returns a list of outgoing edges of this vertex in the input graph. The method <i><b>Edge.getCost()</i></b> defined in class <i><b>Edge</b></i>  can be used to get the cost of an outgoing edge.<br><br>
 
-Once every vertex completes its computation, it can vote to a halt using the <i><b>voteToHalt()</b></i> method.<br><br>
+The <i><b>sendMessageTo(Edge e, double msgValue)</b></i> method in the super class uses an independent entity called a Communicator tied to every compute node to perform the communication among vertices. This is basically an independent thread that aggregates outgoing messages from all vertices executing in a compute node. The communicator is aware of the assignment of vertices to other compute nodes in the cluster. It uses a multithreaded design to communicate messages through parallel RMI calls to other compute nodes, once all worker threads complete their computations.<br><br>
 
-The <i><b>sendMessageTo(String destVertexID, int msgValue)</b></i> method in the super class uses an independent entity called a Communicator tied to every compute node to perform the communication among vertices. This is basically an independent thread that aggregates outgoing messages from all vertices executing in a compute node. The communicator is aware of the assignment of vertices to other compute nodes in the cluster. Once all vertices vote to a computation halt using the <i><b>voteToHalt()</b></i> method, it uses a multithreaded design to communicate messages through parallel RMI calls to other compute nodes.<br><br>
+The method : <i><b>getTotalNumVertices()</i></b> returns the number of vertices in the input graph. This value is initialized by the JPregel system in all vertices across all compute nodes before the first superstep. The method : <i><b>getSuperStep()</i></b> returns the superstep number of the current superstep (starting from 0).<br><br>
 
-The method : <i><b>getNumberOfVertices()</i></b> returns the number of vertices in the input graph. This value is initialized by the JPregel system in all vertices across all compute nodes before the first superstep. The method : <i><b>getSuperStep()</i></b> returns the superstep number of the current superstep (starting from 0).<br><br>
+The values associated with a vertex define its independent state across every superstep. This state can be persisted at the end of every superstep which simplifies the main computation cycle, graph distribution and failure recovery.<br><br>
 
-The values associated with a vertex define its independent state across every superstep. This state can be persisted at the end of every superstep which simplifies the main computation cycle, graph distribution and failure recovery.
+Once all the supersteps for a particular problem instance are over, each vertex can write its solution to an output stream using the <i><b>writeSolution(OutputStream anOutputStream)</b></i> method.
 
 <br><br><br>
 <h3 id="shortestpaths">Example 1 : Shortest Paths Problem</h3>
 
 <p>
-To solve the shortest path problem using JPregel, the application programmer has to extend class <i><b>Vertex</i></b> to define class <i><b>ShortestPathVertex</i></b>, and provide a defintion for the method : <i><b>Vertex.Compute(List&lt;Message&gt; msgs)</i></b>  which solves the single source shortest path problem using <a href="http://en.wikipedia.org/wiki/Dijkstra's_algorithm">Dijkstra's algorithm</a>.<br><br>
+To solve the shortest path problem using JPregel, the application programmer has to extend class <i><b>Vertex</i></b> to define class <i><b>ShortestPathVertex</i></b>, and provide a defintion for the method : <i><b>Vertex.Compute()</i></b>  which solves the single source shortest path problem using <a href="http://en.wikipedia.org/wiki/Dijkstra's_algorithm">Dijkstra's algorithm</a>.<br><br>
 
-In this problem, the value of a vertex at any point of time represents the cost of the tentative shortest path from the source vertex to this vertex. The method : <i><b>Vertex.Compute(List&lt;Message&gt; msgs)</i></b> receives a list of messages from all the other nodes in the previous superstep. It iterates over the set of messages to find the message having the minimum distance value. It sets its own value to the minimum distance received and propagates the minimum distance value to all the vertices that are directly connected to it. This repeats in every superstep.<br><br>
+In this problem, the value of a vertex at any point of time represents the cost of the tentative shortest path from the source vertex to this vertex. The method : <i><b>Vertex.Compute()</i></b> receives a list of messages from all the other nodes in the previous superstep. It iterates over the set of messages to find the message having the minimum distance value. It sets its own value to the minimum distance received and propagates the minimum distance value to all the vertices that are directly connected to it. This repeats in every superstep.<br><br>
 
 The vertex votes to a halt after the computation and is activated by the JPregel system in the next superstep only if it has recieved any messages in the previous superstep.<br><br>
 
-<pre style='color:#d1d1d1;background:#000000;'><span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#e66170; font-weight:bold; '>class</span> shortestPathVertex <span style='color:#e66170; font-weight:bold; '>extends</span> Vertex <span style='color:#b060b0; '>{</span>
-    <span style='color:#e66170; font-weight:bold; '>private</span> <span style='color:#bb7977; font-weight:bold; '>String</span> prevVertexID<span style='color:#b060b0; '>;</span>
-    <span style='color:#e66170; font-weight:bold; '>private</span> <span style='color:#bb7977; font-weight:bold; '>String</span> srcVertexID<span style='color:#b060b0; '>;</span>
+<pre style='color:#d1d1d1;background:#000000;'>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> graphs</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>Edge</span><span style='color:#b060b0; '>;</span>
 
-    <span style='color:#e66170; font-weight:bold; '>public</span> ShortestPathVertex<span style='color:#d2cd86; '>(</span><span style='color:#bb7977; font-weight:bold; '>String</span> vertexID<span style='color:#d2cd86; '>,</span> <span style='color:#bb7977; font-weight:bold; '>Integer</span> value<span style='color:#d2cd86; '>,</span> <span style='color:#bb7977; font-weight:bold; '>List</span><span style='color:#d2cd86; '>&lt;</span>Edge<span style='color:#d2cd86; '>></span> outgoingEdges<span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-        <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>(</span>vertexID<span style='color:#d2cd86; '>,</span> value<span style='color:#d2cd86; '>,</span> outgoingEdges<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-        <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>srcVertexID<span style='color:#d2cd86; '>=</span>srcVertexID<span style='color:#b060b0; '>;</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> java</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>io</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>BufferedWriter</span><span style='color:#b060b0; '>;</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> java</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>io</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>IOException</span><span style='color:#b060b0; '>;</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> java</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>io</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>OutputStream</span><span style='color:#b060b0; '>;</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> java</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>io</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>OutputStreamWriter</span><span style='color:#b060b0; '>;</span>
+
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> system</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>JPregelConstants</span><span style='color:#b060b0; '>;</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> system</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>Message</span><span style='color:#b060b0; '>;</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> api</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>Vertex</span><span style='color:#b060b0; '>;</span>
+
+<span style='color:#90b0e0; '>/**</span>
+<span style='color:#90b0e0; '>&#xa0;</span><span style='color:#8695b8; font-weight:bold; '>*</span><span style='color:#90b0e0; '> </span>
+<span style='color:#90b0e0; '>&#xa0;</span><span style='color:#8695b8; font-weight:bold; '>*</span><span style='color:#90b0e0; '> Calculates the single source shortest path from the source vertex to every</span>
+<span style='color:#90b0e0; '>&#xa0;</span><span style='color:#8695b8; font-weight:bold; '>*</span><span style='color:#90b0e0; '> other vertex in the graph based in Dijkstra's shortest path algorithm</span>
+<span style='color:#90b0e0; '>&#xa0;</span><span style='color:#8695b8; font-weight:bold; '>*</span><span style='color:#90b0e0; '></span>
+<span style='color:#90b0e0; '>&#xa0;*/</span>
+<span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#e66170; font-weight:bold; '>class</span> ShortestPathVertex <span style='color:#e66170; font-weight:bold; '>extends</span> Vertex <span style='color:#b060b0; '>{</span>
+
+    <span style='color:#e66170; font-weight:bold; '>private</span> <span style='color:#e66170; font-weight:bold; '>static</span> <span style='color:#e66170; font-weight:bold; '>final</span> <span style='color:#bb7977; '>long</span> serialVersionUID <span style='color:#d2cd86; '>=</span> <span style='color:#d2cd86; '>-</span><span style='color:#008c00; '>4877455216665842419</span><span style='color:#006600; '>L</span><span style='color:#b060b0; '>;</span>
+    
+    <span style='color:#9999a9; '>/*</span>
+<span style='color:#9999a9; '>&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;* The vertex previous to the current vertex in the shortest path solution</span>
+<span style='color:#9999a9; '>&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;*/</span>
+    <span style='color:#e66170; font-weight:bold; '>private</span> <span style='color:#bb7977; '>int</span> prevVertex<span style='color:#b060b0; '>;</span>
+
+    <span style='color:#e66170; font-weight:bold; '>public</span> ShortestPathVertex<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
+        <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>prevVertex <span style='color:#d2cd86; '>=</span> <span style='color:#d2cd86; '>-</span><span style='color:#008c00; '>1</span><span style='color:#b060b0; '>;</span>
     <span style='color:#b060b0; '>}</span>
 
-    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> compute<span style='color:#d2cd86; '>(</span><span style='color:#bb7977; font-weight:bold; '>List</span><span style='color:#d2cd86; '>&lt;</span>Message<span style='color:#d2cd86; '>></span> msgs<span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-        <span style='color:#bb7977; '>int</span> mindist<span style='color:#b060b0; '>;</span>
-        <span style='color:#e66170; font-weight:bold; '>if</span> <span style='color:#d2cd86; '>(</span>getVertexId<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#d2cd86; '>=</span><span style='color:#d2cd86; '>=</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>srcVertexId<span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-            mindist <span style='color:#d2cd86; '>=</span> <span style='color:#008c00; '>0</span><span style='color:#b060b0; '>;</span>
-        <span style='color:#b060b0; '>}</span> <span style='color:#e66170; font-weight:bold; '>else</span>
-            mindist <span style='color:#d2cd86; '>=</span> JpregelConstants<span style='color:#d2cd86; '>.</span>INFINITY<span style='color:#b060b0; '>;</span>
-        
-        <span style='color:#bb7977; font-weight:bold; '>String</span> newPrevVertexID<span style='color:#d2cd86; '>=</span><span style='color:#e66170; font-weight:bold; '>null</span><span style='color:#b060b0; '>;</span>
-        <span style='color:#e66170; font-weight:bold; '>for</span> <span style='color:#d2cd86; '>(</span>Message msg <span style='color:#d2cd86; '>:</span> msgs<span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-            <span style='color:#e66170; font-weight:bold; '>if</span><span style='color:#d2cd86; '>(</span>mindist <span style='color:#d2cd86; '>&lt;</span> msg<span style='color:#d2cd86; '>.</span>getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-                mindist<span style='color:#d2cd86; '>=</span>msg<span style='color:#d2cd86; '>.</span>getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-                newPrevVertexID<span style='color:#d2cd86; '>=</span>msg<span style='color:#d2cd86; '>.</span>getVertexID<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#e66170; font-weight:bold; '>private</span> <span style='color:#bb7977; '>boolean</span> isSourceVertex<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
+        <span style='color:#e66170; font-weight:bold; '>if</span> <span style='color:#d2cd86; '>(</span><span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getVertexID<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#d2cd86; '>=</span><span style='color:#d2cd86; '>=</span> <span style='color:#008c00; '>0</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
+            <span style='color:#e66170; font-weight:bold; '>return</span> <span style='color:#e66170; font-weight:bold; '>true</span><span style='color:#b060b0; '>;</span>
+        <span style='color:#b060b0; '>}</span>
+        <span style='color:#e66170; font-weight:bold; '>return</span> <span style='color:#e66170; font-weight:bold; '>false</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#b060b0; '>}</span>
+
+    <span style='color:#9999a9; '>/*</span>
+<span style='color:#9999a9; '>&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;* Implementation of compute() for Dijkstra's shortest path</span>
+<span style='color:#9999a9; '>&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;*/</span>
+    <span style='color:#d2cd86; '>@</span>Override
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> compute<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
+
+        <span style='color:#bb7977; '>double</span> minDist <span style='color:#d2cd86; '>=</span> isSourceVertex<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#d2cd86; '>?</span> <span style='color:#008c00; '>0</span> <span style='color:#d2cd86; '>:</span> JPregelConstants<span style='color:#d2cd86; '>.</span>INFINITY<span style='color:#b060b0; '>;</span>
+        <span style='color:#bb7977; '>int</span> newPrevVertexID <span style='color:#d2cd86; '>=</span> <span style='color:#d2cd86; '>-</span><span style='color:#008c00; '>1</span><span style='color:#b060b0; '>;</span>
+        <span style='color:#e66170; font-weight:bold; '>for</span> <span style='color:#d2cd86; '>(</span>Message aMsg <span style='color:#d2cd86; '>:</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getMessages<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
+            <span style='color:#e66170; font-weight:bold; '>if</span> <span style='color:#d2cd86; '>(</span>aMsg<span style='color:#d2cd86; '>.</span>getMessageValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#d2cd86; '>&lt;</span> minDist<span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
+                minDist <span style='color:#d2cd86; '>=</span> aMsg<span style='color:#d2cd86; '>.</span>getMessageValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+                newPrevVertexID <span style='color:#d2cd86; '>=</span> aMsg<span style='color:#d2cd86; '>.</span>getSourceVertexID<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
             <span style='color:#b060b0; '>}</span>
         <span style='color:#b060b0; '>}</span>
 
-        <span style='color:#e66170; font-weight:bold; '>if</span> <span style='color:#d2cd86; '>(</span>mindist <span style='color:#d2cd86; '>&lt;</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-            <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>prevVertexID<span style='color:#d2cd86; '>=</span>newPrevVertexID<span style='color:#b060b0; '>;</span>
-            <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>setValue<span style='color:#d2cd86; '>(</span>mindist<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-
+        <span style='color:#e66170; font-weight:bold; '>if</span> <span style='color:#d2cd86; '>(</span>minDist <span style='color:#d2cd86; '>&lt;</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
+            <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>prevVertex <span style='color:#d2cd86; '>=</span> newPrevVertexID<span style='color:#b060b0; '>;</span>
+            <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>setValue<span style='color:#d2cd86; '>(</span>minDist<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
             <span style='color:#e66170; font-weight:bold; '>for</span> <span style='color:#d2cd86; '>(</span>Edge e <span style='color:#d2cd86; '>:</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getEdges<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-                <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>sendMessage<span style='color:#d2cd86; '>(</span>e<span style='color:#d2cd86; '>.</span>getDestID<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>,</span> mindist <span style='color:#d2cd86; '>+</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getCost<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+                <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>sendMessage<span style='color:#d2cd86; '>(</span>e<span style='color:#d2cd86; '>,</span> minDist <span style='color:#d2cd86; '>+</span> e<span style='color:#d2cd86; '>.</span>getCost<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
             <span style='color:#b060b0; '>}</span>
         <span style='color:#b060b0; '>}</span>
+    <span style='color:#b060b0; '>}</span>
     
-        <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>voteToHalt<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#9999a9; '>/*</span>
+<span style='color:#9999a9; '>&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;* Write the solution to an output stream</span>
+<span style='color:#9999a9; '>&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;*/</span>
+
+    <span style='color:#d2cd86; '>@</span>Override
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> writeSolution<span style='color:#d2cd86; '>(</span><span style='color:#bb7977; font-weight:bold; '>OutputStream</span> anOutputStream<span style='color:#d2cd86; '>)</span> <span style='color:#e66170; font-weight:bold; '>throws</span> <span style='color:#bb7977; font-weight:bold; '>IOException</span> <span style='color:#b060b0; '>{</span>
+        <span style='color:#bb7977; font-weight:bold; '>BufferedWriter</span> buffWriter <span style='color:#d2cd86; '>=</span> <span style='color:#e66170; font-weight:bold; '>new</span> <span style='color:#bb7977; font-weight:bold; '>BufferedWriter</span><span style='color:#d2cd86; '>(</span><span style='color:#e66170; font-weight:bold; '>new</span> <span style='color:#bb7977; font-weight:bold; '>OutputStreamWriter</span><span style='color:#d2cd86; '>(</span>
+                anOutputStream<span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+        buffWriter<span style='color:#d2cd86; '>.</span>write<span style='color:#d2cd86; '>(</span><span style='color:#00c4c4; '>""</span> <span style='color:#d2cd86; '>+</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getVertexID<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#d2cd86; '>+</span> <span style='color:#00c4c4; '>"->"</span> <span style='color:#d2cd86; '>+</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#d2cd86; '>+</span> <span style='color:#00c4c4; '>","</span>
+                <span style='color:#d2cd86; '>+</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>prevVertex <span style='color:#d2cd86; '>+</span> <span style='color:#00c4c4; '>"</span><span style='color:#008080; '>\n</span><span style='color:#00c4c4; '>"</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+        buffWriter<span style='color:#d2cd86; '>.</span>close<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
     <span style='color:#b060b0; '>}</span>
 
 <span style='color:#b060b0; '>}</span>
@@ -129,38 +174,87 @@ The vertex votes to a halt after the computation and is activated by the JPregel
 <br><br><br>
 <h3 id="pagerank">Example 2 : PageRank Algorithm</h3>
 <p>
-To solve the page rank problem using JPregel, the application programmer extends the Vertex class to create a <i><b>PageRankVertex</b></i> class which defines the method : <i><b>Vertex.compute(List&lt;Message&gt; msgs)</b></i> to calculate the page rank of a vertex.<br><br>
+To solve the <a href="http://en.wikipedia.org/wiki/PageRank">Page Rank problem</a> using JPregel, the application programmer extends the Vertex class to create a <i><b>PageRankVertex</b></i> class which defines the method : <i><b>Vertex.compute()</b></i> to calculate the page rank of a vertex.<br><br>
 
 At any point of time, the value of a vertex represents the tentative page rank of the vertex. The graph is intialized with each vertex value equal to <b>1/num_of_vertices</b>. In each of the first 30 supersteps, each vertex sends its tentative page rank along all of its outgoing edges. <br><br>
 
 From SuperStep 1 to 30, each vertex sums up the values arriving on all its messages and sets its tentative page rank to <b>0.15/num_of_vertices + 0.85 * sum_of_PRs</b>. After 30 Supersteps the vertices vote to halt. The number 30 is an arbitrary value assumed to provide a simplified implementation of PageRank. In reality, PageRank algorithm will run until convergence is achieved.<br><br>
 
-<pre style='color:#d1d1d1;background:#000000;'><span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#e66170; font-weight:bold; '>class</span> pageRankVertex <span style='color:#e66170; font-weight:bold; '>extends</span> Vertex <span style='color:#b060b0; '>{</span>
+<pre style='color:#d1d1d1;background:#000000;'>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> graphs</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>Edge</span><span style='color:#b060b0; '>;</span>
 
-    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> compute<span style='color:#d2cd86; '>(</span><span style='color:#bb7977; font-weight:bold; '>List</span><span style='color:#d2cd86; '>&lt;</span>Message<span style='color:#d2cd86; '>></span> msgs<span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> java</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>io</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>BufferedWriter</span><span style='color:#b060b0; '>;</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> java</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>io</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>IOException</span><span style='color:#b060b0; '>;</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> java</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>io</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>OutputStream</span><span style='color:#b060b0; '>;</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> java</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>io</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>OutputStreamWriter</span><span style='color:#b060b0; '>;</span>
 
-        <span style='color:#e66170; font-weight:bold; '>if</span> <span style='color:#d2cd86; '>(</span><span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getSuperStep<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#d2cd86; '>></span><span style='color:#d2cd86; '>=</span> <span style='color:#008c00; '>1</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-            <span style='color:#bb7977; '>int</span> sum <span style='color:#d2cd86; '>=</span> <span style='color:#008c00; '>0</span><span style='color:#b060b0; '>;</span>
-            <span style='color:#e66170; font-weight:bold; '>for</span> <span style='color:#d2cd86; '>(</span>Message msg <span style='color:#d2cd86; '>:</span> msgs<span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-                sum <span style='color:#d2cd86; '>+</span><span style='color:#d2cd86; '>=</span> msg<span style='color:#d2cd86; '>.</span>getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-            <span style='color:#b060b0; '>}</span>
-            <span style='color:#bb7977; '>int</span> newValue <span style='color:#d2cd86; '>=</span> <span style='color:#009f00; '>0.15</span> <span style='color:#d2cd86; '>/</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getNumberOfVertices<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#d2cd86; '>+</span> <span style='color:#009f00; '>0.85</span> <span style='color:#d2cd86; '>*</span> sum<span style='color:#b060b0; '>;</span>
-            <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>setValue<span style='color:#d2cd86; '>(</span>newValue<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-        <span style='color:#b060b0; '>}</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> system</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>Message</span><span style='color:#b060b0; '>;</span>
 
-        <span style='color:#e66170; font-weight:bold; '>if</span> <span style='color:#d2cd86; '>(</span><span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getSuperStep<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#d2cd86; '>&lt;</span> <span style='color:#008c00; '>30</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-            <span style='color:#bb7977; '>int</span> n <span style='color:#d2cd86; '>=</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getEdges<span style='color:#d2cd86; '>.</span>size<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-            <span style='color:#e66170; font-weight:bold; '>for</span> <span style='color:#d2cd86; '>(</span>Edge e <span style='color:#d2cd86; '>:</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getEdges<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
-                <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>sendMessage<span style='color:#d2cd86; '>(</span>e<span style='color:#d2cd86; '>.</span>getDestID<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>,</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#d2cd86; '>/</span> n<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-            <span style='color:#b060b0; '>}</span>
-        <span style='color:#b060b0; '>}</span> <span style='color:#e66170; font-weight:bold; '>else</span> <span style='color:#b060b0; '>{</span>
-            <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>voteToHalt<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
-        <span style='color:#b060b0; '>}</span>
+<span style='color:#e66170; font-weight:bold; '>import</span><span style='color:#008073; '> api</span><span style='color:#d2cd86; '>.</span><span style='color:#008073; '>Vertex</span><span style='color:#b060b0; '>;</span>
 
+<span style='color:#90b0e0; '>/**</span>
+<span style='color:#90b0e0; '>&#xa0;</span><span style='color:#8695b8; font-weight:bold; '>*</span><span style='color:#90b0e0; '> </span>
+<span style='color:#90b0e0; '>&#xa0;</span><span style='color:#8695b8; font-weight:bold; '>*</span><span style='color:#90b0e0; '> Calculates the page rank of a vertex</span>
+<span style='color:#90b0e0; '>&#xa0;</span><span style='color:#8695b8; font-weight:bold; '>*</span><span style='color:#90b0e0; '> </span>
+<span style='color:#90b0e0; '>&#xa0;*/</span>
+<span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#e66170; font-weight:bold; '>class</span> PageRankVertex <span style='color:#e66170; font-weight:bold; '>extends</span> Vertex<span style='color:#b060b0; '>{</span>    
+    
+    <span style='color:#e66170; font-weight:bold; '>private</span> <span style='color:#e66170; font-weight:bold; '>static</span> <span style='color:#e66170; font-weight:bold; '>final</span> <span style='color:#bb7977; '>long</span> serialVersionUID <span style='color:#d2cd86; '>=</span> <span style='color:#d2cd86; '>-</span><span style='color:#008c00; '>4444855908940126630</span><span style='color:#006600; '>L</span><span style='color:#b060b0; '>;</span>
+
+    <span style='color:#e66170; font-weight:bold; '>public</span> PageRankVertex<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>{</span>
+        
     <span style='color:#b060b0; '>}</span>
 
+    <span style='color:#90b0e0; '>/**</span>
+<span style='color:#90b0e0; '>&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;</span><span style='color:#8695b8; font-weight:bold; '>*</span><span style='color:#90b0e0; '> Defines the compute() method foc calculating PageRank</span>
+<span style='color:#90b0e0; '>&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;*/</span>
+    <span style='color:#d2cd86; '>@</span>Override
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> compute<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span> <span style='color:#b060b0; '>{</span>
+        
+        <span style='color:#e66170; font-weight:bold; '>if</span><span style='color:#d2cd86; '>(</span><span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getSuperStep<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>></span><span style='color:#d2cd86; '>=</span><span style='color:#008c00; '>1</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>{</span>
+            <span style='color:#bb7977; '>double</span> sum<span style='color:#d2cd86; '>=</span><span style='color:#008c00; '>0</span><span style='color:#b060b0; '>;</span>
+            <span style='color:#e66170; font-weight:bold; '>for</span><span style='color:#d2cd86; '>(</span>Message m <span style='color:#d2cd86; '>:</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getMessages<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>{</span>
+                sum<span style='color:#d2cd86; '>+</span><span style='color:#d2cd86; '>=</span>m<span style='color:#d2cd86; '>.</span>getMessageValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+            <span style='color:#b060b0; '>}</span>
+            <span style='color:#bb7977; '>double</span> newPageRank<span style='color:#d2cd86; '>=</span><span style='color:#009f00; '>0.15</span><span style='color:#d2cd86; '>/</span><span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getTotalNumVertices<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>+</span><span style='color:#009f00; '>0.85</span><span style='color:#d2cd86; '>*</span>sum<span style='color:#b060b0; '>;</span>
+            <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>setValue<span style='color:#d2cd86; '>(</span>newPageRank<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+        <span style='color:#b060b0; '>}</span>
+        
+        <span style='color:#e66170; font-weight:bold; '>if</span><span style='color:#d2cd86; '>(</span><span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getSuperStep<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>&lt;</span> <span style='color:#008c00; '>30</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>{</span>
+            <span style='color:#bb7977; '>int</span> numEdges<span style='color:#d2cd86; '>=</span><span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getEdges<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>.</span>size<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+            <span style='color:#e66170; font-weight:bold; '>for</span><span style='color:#d2cd86; '>(</span>Edge e <span style='color:#d2cd86; '>:</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getEdges<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>{</span>
+                <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>sendMessage<span style='color:#d2cd86; '>(</span>e<span style='color:#d2cd86; '>,</span> <span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>/</span>numEdges<span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+            <span style='color:#b060b0; '>}</span>
+        <span style='color:#b060b0; '>}</span>
+    <span style='color:#b060b0; '>}</span>
+    
+    <span style='color:#d2cd86; '>@</span>Override
+    <span style='color:#e66170; font-weight:bold; '>public</span> <span style='color:#bb7977; '>void</span> writeSolution<span style='color:#d2cd86; '>(</span><span style='color:#bb7977; font-weight:bold; '>OutputStream</span> anOutputStream<span style='color:#d2cd86; '>)</span> <span style='color:#e66170; font-weight:bold; '>throws</span> <span style='color:#bb7977; font-weight:bold; '>IOException</span><span style='color:#b060b0; '>{</span>
+        <span style='color:#bb7977; font-weight:bold; '>BufferedWriter</span> buffWriter <span style='color:#d2cd86; '>=</span> <span style='color:#e66170; font-weight:bold; '>new</span> <span style='color:#bb7977; font-weight:bold; '>BufferedWriter</span><span style='color:#d2cd86; '>(</span><span style='color:#e66170; font-weight:bold; '>new</span> <span style='color:#bb7977; font-weight:bold; '>OutputStreamWriter</span><span style='color:#d2cd86; '>(</span>anOutputStream<span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+        buffWriter<span style='color:#d2cd86; '>.</span>write<span style='color:#d2cd86; '>(</span><span style='color:#00c4c4; '>""</span><span style='color:#d2cd86; '>+</span><span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getVertexID<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>+</span><span style='color:#00c4c4; '>"->"</span><span style='color:#d2cd86; '>+</span><span style='color:#e66170; font-weight:bold; '>this</span><span style='color:#d2cd86; '>.</span>getValue<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#d2cd86; '>+</span><span style='color:#00c4c4; '>"</span><span style='color:#008080; '>\n</span><span style='color:#00c4c4; '>"</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>        
+        buffWriter<span style='color:#d2cd86; '>.</span>close<span style='color:#d2cd86; '>(</span><span style='color:#d2cd86; '>)</span><span style='color:#b060b0; '>;</span>
+    <span style='color:#b060b0; '>}</span>
+
+    
 <span style='color:#b060b0; '>}</span>
 </pre>
+<br><br><br>
+<h3 id="futurework">Future Work</h3>
+<p>
+<ol>
+<li>Generic representation of input graphs
+
+<li>Partitioning based on vertex degrees (Achieves better load balancing)
+
+<li>Custom partitioning - Reduces message communication overhead<br>
+Ex: Vertices representing pages of the same site for world wide web graphs are assigned to the same worker
+
+<li>Distributed database to store messages in communicator and checkpoint data
+
+<li>Dedicated machines to detect faults
+
+<li>Multi-threaded design to issue requests to worker machines to dump solutions once the problem is solved 
+</ol>
 <br><br><br>
 <br><br><br>
 <br><br><br>
