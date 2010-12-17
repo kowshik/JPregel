@@ -4,10 +4,10 @@ function setHeight(pageName)
 
 	var minHeights = new Array();
 	
-	minHeights['home']=940;
+	minHeights['home']=1040;
 	minHeights['developers']=4040;
-	minHeights['team']=740;
-	minHeights['source_code']=940;
+	minHeights['team']=1040;
+	minHeights['source_code']=1040;
 
 	if(screen.height < minHeights[pageName])
 	{
