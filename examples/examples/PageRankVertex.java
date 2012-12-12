@@ -35,7 +35,7 @@
 		}
 	
 		/**
-		 * Defines the compute() method foc calculating PageRank
+		 * Defines the compute() method for calculating PageRank
 		 */
 		@Override
 		public void compute() {
